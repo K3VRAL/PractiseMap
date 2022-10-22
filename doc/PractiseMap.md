@@ -5,4 +5,4 @@ TODO
 -e	--end 					// Integer
 -r	--rng					// Boolean
 -h	--hardrock				// Boolean
--b	--beginning-objects		// Unsigned Integer
+-b	--beginning-objects		// Integer Integer
