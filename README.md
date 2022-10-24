@@ -14,9 +14,7 @@ PractiseMap is a CLI application that automates the modification of a map to all
 
 Before you can do anything with the project, you will need to [download and install libosu.so](https://github.com/K3VRAL/libosu).
 
-You will also need to install a POSIX compliant shell to utilise the application such as `Bash`, `Dash`, `Zsh`, etc.
-
-If you are on Windows, it is recommended to check out `Git Bash` or `WSL` for the right enviroment.
+You will also need to install `ruby`, `make` and `pkg-config`.
 
 <a name='doc'></a>
 
