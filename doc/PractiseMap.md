@@ -4,4 +4,4 @@ TODO
 -s	--start					// Integer
 -e	--end 					// Integer
 -r	--rng					// Boolean
--h	--hardrock				// Boolean
+-d	--hardrock				// Boolean
