@@ -76,8 +76,12 @@ end
 
 module LIBOSU
 	extend FFI::Library
-	ffi_lib "/usr/lib/libosu.so"
+	ffi_lib ["stdio", "osu"]
+
+	attach_function :fopen, [:string, :string], :pointer
+	attach_function :fclose, [:pointer], :void
 
 	attach_function :of_beatmap_init, [Beatmap.by_ref], :void
 	attach_function :of_beatmap_free, [Beatmap.by_value], :void
+	attach_function :of_beatmap_set, [Beatmap.by_ref, :pointer], :void
 end
