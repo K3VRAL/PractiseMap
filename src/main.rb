@@ -1,7 +1,9 @@
+#!/usr/bin/env ruby
+
 $beatmap 	= ""
 $output 	= ""
-$start_time	= 0
-$end_time	= 0
+$time		= (Struct.new(:start, :end)).new
+$beginning	= (Struct.new(:start, :amount)).new
 $rng		= false
 $hardrock	= false
 
@@ -10,7 +12,7 @@ require_relative "practise"
 
 def main
 	arguments
-	puts "[#$beatmap][#$output][#$start_time][#$end_time][#$rng][#$hardrock]"
+	puts "[#$beatmap][#$output][#{$time}][#{$beginning}][#$rng][#$hardrock]"
 	practise
 end
 

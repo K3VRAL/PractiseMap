@@ -1,27 +1,30 @@
 require_relative "import"
 
 def practise
-	was_good = system("pkg-config libosu")
-	if !was_good
+	if !system("pkg-config libosu")
 		puts "Error: Unable to find `pkg-config` hasn't been installed or unable to locate `libosu`"
 		exit 1
 	end
 
-	# TODO
 	fp = LIBOSU.fopen($beatmap, "r")
 	if fp.null?
 		puts "Error: Beatmap input file [#$beatmap] was not found"
 		exit 1
 	end
 
-	map = Beatmap.new
+	map = LIBOSU::Beatmap.new
 	LIBOSU.of_beatmap_init(map)
 	LIBOSU.of_beatmap_set(map, fp)
-	
-	for i in 1..map[:num_ho] do
-		puts i
-	end
 
-	LIBOSU.fclose(fp)
-	LIBOSU.of_beatmap_free(map)
+	pointer = map[:hit_objects].to_ptr
+	array_ho = map[:num_ho].times.map { | i |
+		LIBOSU::HitObject.new(pointer + (i * LIBOSU::HitObject.size))
+	}
+
+	store_objects = []
+	for i in array_ho do
+		if i[:time] >= $time.start && i[:time] <= $time.end
+			puts "#{i[:x]}"
+		end
+	end
 end
