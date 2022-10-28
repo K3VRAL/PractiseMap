@@ -12,7 +12,10 @@ require_relative "practise"
 
 def main
 	arguments
-	puts "[#$beatmap][#$output][#{$time}][#{$beginning}][#$rng][#$hardrock]"
+	if ($beatmap.nil? || $time.start.nil? || $time.end.nil?)
+		exit 1
+	end
+	puts "[#$beatmap][#$output][#$time}][#$beginning}][#$rng][#$hardrock]"
 	practise
 end
 
