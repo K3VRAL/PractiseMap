@@ -1,9 +1,9 @@
 #!/usr/bin/env ruby
 
 $beatmap 	= ""
-$output 	= ""
+$output 	= nil
 $time		= (Struct.new(:start, :end)).new
-$beginning	= (Struct.new(:start, :amount)).new
+$beginning	= (Struct.new(:time, :amount)).new
 $rng		= false
 $hardrock	= false
 
@@ -12,9 +12,6 @@ require_relative "practise"
 
 def main
 	arguments
-	if ($beatmap.nil? || $time.start.nil? || $time.end.nil?)
-		exit 1
-	end
 	puts "[#$beatmap][#$output][#$time}][#$beginning}][#$rng][#$hardrock]"
 	practise
 end

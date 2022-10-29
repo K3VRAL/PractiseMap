@@ -85,4 +85,6 @@ module LIBOSU
 
 	attach_function :of_beatmap_init, [Beatmap.by_ref], :void
 	attach_function :of_beatmap_set, [Beatmap.by_ref, :pointer], :void
+	
+	attach_function :oos_hitobject_freebulk, [HitObject.by_ref, :uint], :void
 end
