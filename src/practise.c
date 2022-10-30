@@ -75,6 +75,9 @@ void practise_main() {
 			.hit_sound = 0,
 			.hit_sample = {0}
 		};
+		if (i == practise.beginning.amount - 1) {
+			object.time = practise.beginning.time + 1;
+		}
 		char *output = NULL;
 		ofb_hitobject_tostring(&output, object);
 
