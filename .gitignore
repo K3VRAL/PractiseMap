@@ -1,0 +1,5 @@
+bin/
+*.o
+pracmap
+vgcore.*
+compile_flags.txt
