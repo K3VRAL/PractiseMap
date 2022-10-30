@@ -14,7 +14,7 @@ int main(int argc, char **argv) {
 	if (practise.beatmap != NULL) {
 		fclose(practise.beatmap);
 	}
-	if (practise.output != stdout) {
+	if (practise.output != stdout && practise.output != NULL) {
 		fclose(practise.output);
 	}
 

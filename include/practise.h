@@ -3,6 +3,11 @@
 
 #include <stdbool.h>
 #include <stdio.h>
+#include <unistd.h>
+#include <unistd.h>
+#include <sys/ioctl.h>
+
+#include <osu.h>
 
 typedef struct Practise {
 	FILE *beatmap;
