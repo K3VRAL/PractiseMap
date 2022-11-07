@@ -30,13 +30,15 @@ void args_output(bool *assign, char *option) {
 }
 
 void args_time(char *option) {
-	practise.time.start = (int) strtol(strtok(option, ","), NULL, 10);
-	practise.time.end = strtol(strtok(NULL, ","), NULL, 10);
+	practise.time = realloc(practise.time, ++practise.time_num * sizeof(*practise.time));
+	(practise.time + practise.time_num - 1)->start = (int) strtol(strtok(option, ","), NULL, 10);
+	(practise.time + practise.time_num - 1)->end = strtol(strtok(NULL, ","), NULL, 10);
 }
 
 void args_beginning(char *option) {
-	practise.beginning.time = (int) strtol(strtok(option, ","), NULL, 10);
-	practise.beginning.amount = strtoul(strtok(NULL, ","), NULL, 10);
+	practise.beginning = realloc(practise.beginning, ++practise.beginning_num * sizeof(*practise.beginning));
+	(practise.beginning + practise.beginning_num - 1)->time = (int) strtol(strtok(option, ","), NULL, 10);
+	(practise.beginning + practise.beginning_num - 1)->num = strtoul(strtok(NULL, ","), NULL, 10);
 }
 
 void args_rng(void) {
@@ -87,6 +89,7 @@ void args_main(bool *keep_running, int argc, char **argv) {
 			args_output(&assign, *(argv + ++i));
 			if (!assign) {
 				fprintf(stdout, "Output file not possible: %s - defaulting to stdout\n", *(argv + i));
+				practise.output = stdout;
 			}
 		} else if (!strcmp(*(*(args_arg + 2) + 0), *(argv + i)) || !strcmp(*(*(args_arg + 2) + 1), *(argv + i))) {
 			args_time(*(argv + ++i));

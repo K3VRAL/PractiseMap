@@ -3,34 +3,74 @@
 Practise practise = {
 	.beatmap = NULL,
 	.output = NULL,
-	.time = {
-		.start = 0,
-		.end = 0
-	},
-	.beginning = {
-		.time = 0,
-		.amount = 0
-	},
+	.time = NULL,
+	.time_num = 0,
+	.beginning = NULL,
+	.beginning_num = 0,
 	.rng = false,
 	.hardrock = false
 };
 
-/* Prints out the progress bar in the terminal. Resizing the terminal will also resize the output */
-void predictor_progressbar(unsigned int percent) {
-	struct winsize w;
-	ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+void practise_beatmap(Beatmap beatmap) {
+	HitObject *temp = beatmap.hit_objects;
+	unsigned int temp_num = beatmap.num_ho;
+	beatmap.hit_objects = NULL;
+	beatmap.num_ho = 0;
+	
+	free(beatmap.metadata->version);
+	int buffer_num = strlen("Version:") + 1;
+	char *buffer = calloc(buffer_num, sizeof(*buffer));
+	snprintf(buffer, buffer_num, "Version:");
+	if (practise.output != stdout && practise.output != NULL) {
+		for (int i = 0; i < practise.time_num; i++) {
+			int time_start = ou_comparing_size((practise.time + i)->start);
+			int time_end = ou_comparing_size((practise.time + i)->end);
+			buffer_num += 1 + time_start + 1 + time_end;
+			char *buffer = calloc(buffer_num, sizeof(*buffer));
+			snprintf(buffer, buffer_num, " %d-%d", (practise.time + i)->start, (practise.time + i)->end);
+		}
+	}
+	ofb_metadata_setfromstring(beatmap.metadata, buffer);
+	free(buffer);
+	of_beatmap_tofile(practise.output, beatmap);
 
-	int size_terminal = w.ws_col - 2 - 1 - 3 - 1;
-	int width = percent * size_terminal / 100;
-	fprintf(stdout, "\r[");
-	for (int i = 0; i < width; i++) {
-		fprintf(stdout, "#");
+	beatmap.hit_objects = temp;
+	beatmap.num_ho = temp_num;
+}
+
+void practise_beginning(void) {
+	// TODO eval rng/+hardrock
+	for (int i = 0; i < practise.beginning_num; i++) {
+		for (int j = 0; j < (practise.beginning + i)->num; j++) {
+			HitObject object = {
+				.x = 256,
+				.y = 192,
+				.time = (practise.beginning + i)->time,
+				.type = nc_circle,
+				.hit_sound = 0,
+				.hit_sample = {0}
+			};
+			char *output = NULL;
+			ofb_hitobject_tostring(&output, object);
+
+			fprintf(practise.output, "%s", output);
+			
+			free(output);
+		}
 	}
-	for (int i = 0; i < size_terminal - width; i++) {
-		fprintf(stdout, " ");
+}
+
+void practise_time(Beatmap beatmap) {
+	for (int i = 0; i < beatmap.num_ho; i++) {
+		for (int j = 0; j < practise.time_num; j++) {
+			if ((beatmap.hit_objects + i)->time >= (practise.time + j)->start && (beatmap.hit_objects + i)->time <= (practise.time + j)->end) {
+				char *output = NULL;
+				ofb_hitobject_tostring(&output, *(beatmap.hit_objects + i));
+				fprintf(practise.output, "%s", output);
+				free(output);
+			}
+		}
 	}
-	fprintf(stdout, "] %d%%", percent);
-	fflush(stdout);
 }
 
 void practise_main() {
@@ -42,61 +82,9 @@ void practise_main() {
 	of_beatmap_init(&beatmap);
 	of_beatmap_set(&beatmap, practise.beatmap);
 
-	if (practise.output != stdout && practise.output != NULL) {
-		HitObject *temp = beatmap.hit_objects;
-		unsigned int temp_num = beatmap.num_ho;
+	practise_beatmap(beatmap);
+	practise_beginning();
+	practise_time(beatmap);
 
-		beatmap.hit_objects = NULL;
-		beatmap.num_ho = 0;
-		
-		int time_start = ou_comparing_size(practise.time.start);
-		int time_end = ou_comparing_size(practise.time.end);
-		int buffer_num = strlen("Version:") + time_start + 1 + time_end + 1;
-		char *buffer = calloc(buffer_num, sizeof(*buffer));
-		free(beatmap.metadata->version);
-		snprintf(buffer, buffer_num, "Version:%d-%d", practise.time.start, practise.time.end);
-
-		ofb_metadata_setfromstring(beatmap.metadata, buffer);
-
-		of_beatmap_tofile(practise.output, beatmap);
-
-		beatmap.hit_objects = temp;
-		beatmap.num_ho = temp_num;
-
-		free(buffer);
-	}
-
-	for (int i = 0; i < practise.beginning.amount; i++) {
-		HitObject object = {
-			.x = 256,
-			.y = 192,
-			.time = practise.beginning.time,
-			.type = nc_circle,
-			.hit_sound = 0,
-			.hit_sample = {0}
-		};
-		if (i == practise.beginning.amount - 1) {
-			object.time = practise.beginning.time + 1;
-		}
-		char *output = NULL;
-		ofb_hitobject_tostring(&output, object);
-
-		fprintf(practise.output, "%s", output);
-		
-		free(output);
-	}
-
-	for (int i = 0; i < beatmap.num_ho; i++) {
-		if ((beatmap.hit_objects + i)->time >= practise.time.start && (beatmap.hit_objects + i)->time <= practise.time.end) {
-			char *output = NULL;
-			ofb_hitobject_tostring(&output, *(beatmap.hit_objects + i));
-			
-			fprintf(practise.output, "%s", output);
-			
-			free(output);
-		}
-	}
-
-	// Free
 	of_beatmap_free(beatmap);
 }
