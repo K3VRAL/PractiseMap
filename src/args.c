@@ -1,38 +1,42 @@
 #include "args.h"
+#include "practise.h"
 
-#define args_arg_num 7
-char *args_arg[args_arg_num][4] = {
-	{ "-b", "--beatmap", "file", "inputs the beatmap from the file location" },
-	{ "-o", "--output", "[file]", "outputs the BananaPredictor to the file location" },
-	{ "-t", "--time", "start,end", "start and end time to start including the objects" },
-	{ "-g", "--beginning", "[time,amount]", "gives the time and amount of objects to be placed before the beatmap starts" },
-	{ "-r", "--rng", "", "keeps track of the rng elements of the map and outputs it to the beginning of the map" },
-	{ "-d", "--hardrock", "", "keeps track of the rng elements given that hardrock is enabled; relies on `-r` to be enabled" },
-	{ "-h", "--help", "", "gives this help message" }
-};
+#include <stdbool.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
-void args_beatmap(bool *assign, char *option) {
+bool args_beatmap(char *option) {
+	if (practise.beatmap != NULL) {
+		fprintf(stdout, "Error: Input file has already been inputted\n");
+		return false;
+	}
 	FILE *fp = fopen(option, "r");
 	if (fp == NULL) {
-		*assign = false;
-		return;
+		fprintf(stdout, "Error: Input file returned an error\n");
+		return false;
 	}
 	practise.beatmap = fp;
+	return true;
 }
 
-void args_output(bool *assign, char *option) {
+bool args_output(char *option) {
+	if (practise.output != NULL) {
+		fprintf(stdout, "Error: Output file has already been inputted\n");
+		return false;
+	}
 	FILE *fp = fopen(option, "w");
 	if (fp == NULL) {
-		*assign = false;
-		return;
+		fprintf(stdout, "Error: Output file is returned an error\n");
+		return false;
 	}
 	practise.output = fp;
+	return true;
 }
 
 void args_time(char *option) {
-	practise.time = realloc(practise.time, ++practise.time_num * sizeof(*practise.time));
-	(practise.time + practise.time_num - 1)->start = (int) strtol(strtok(option, ","), NULL, 10);
-	(practise.time + practise.time_num - 1)->end = strtol(strtok(NULL, ","), NULL, 10);
+	practise.time.start = (int) strtol(strtok(option, ","), NULL, 10);
+	practise.time.end = strtol(strtok(NULL, ","), NULL, 10);
 }
 
 void args_beginning(char *option) {
@@ -49,6 +53,99 @@ void args_hardrock(void) {
 	practise.hardrock = true;
 }
 
+void args_help(void);
+
+typedef struct Args {
+	char *i;
+	char *item;
+	char *argument;
+	char *description;
+	enum {
+		bcp,
+		cp,
+		v,
+		rv
+	} e_function;
+	union {
+		bool (*bcp)(char *);
+		void (*cp)(char *);
+		void (*v)(void);
+	} function;
+} Args;
+#define args_num 7
+Args args_arg[args_num] = {
+	{
+		.i = "-b",
+		.item = "--beatmap",
+		.argument = "file",
+		.description = "inputs the beatmap from the file location",
+		.e_function = bcp,
+		.function = {
+			.bcp = args_beatmap
+		}
+	},
+	{
+		.i = "-o",
+		.item = "--output",
+		.argument = "[file]",
+		.description = "outputs the objects to the file location",
+		.e_function = bcp,
+		.function = {
+			.bcp = args_output
+		}
+	},
+	{
+		.i = "-t",
+		.item = "--time",
+		.argument = "start,end",
+		.description = "start and end time to start including the objects",
+		.e_function = cp,
+		.function = {
+			.cp = args_time
+		}
+	},
+	{
+		.i = "-g",
+		.item = "--beginning",
+		.argument = "[time,amount]",
+		.description = "gives the time and amount of objects to be placed before the beatmap starts",
+		.e_function = cp,
+		.function = {
+			.cp = args_beginning
+		}
+	},
+	{
+		.i = "-r",
+		.item = "--rng",
+		.argument = "",
+		.description = "keeps track of the rng elements of the map and outputs it to the beginning of the map",
+		.e_function = v,
+		.function = {
+			.v = args_rng
+		}
+	},
+	{
+		.i = "-d",
+		.item = "--hardrock",
+		.argument = "",
+		.description = "keeps track of the rng elements given that hardrock is enabled; relies on `-r` to be enabled",
+		.e_function = v,
+		.function = {
+			.v = args_hardrock
+		}
+	},
+	{
+		.i = "-h",
+		.item = "--help",
+		.argument = "",
+		.description = "gives this help message",
+		.e_function = rv,
+		.function = {
+			.v = args_help
+		}
+	}
+};
+
 void args_help(void) {
 	char *title = "PractiseMap";
 	fprintf(stdout, "%s\n\n", title);
@@ -58,55 +155,44 @@ void args_help(void) {
 
 	// For the spaces
 	int space_num = 0;
-	for (int i = 0; i < args_arg_num; i++) {
-		int num = strlen(*(*(args_arg + i) + 0)) + 2 + strlen(*(*(args_arg + i) + 1)) + strlen(*(*(args_arg + i) + 2));
+	for (int i = 0; i < args_num; i++) {
+		int num = strlen((args_arg + i)->i) + 2 + strlen((args_arg + i)->item) + strlen((args_arg + i)->argument);
 		if (num > space_num) {
 			space_num = num;
 		}
 	}
 	// Printing text with the spaces
 	fprintf(stdout, "arguments:\n");
-	for (int i = 0; i < args_arg_num; i++) {
-		int num = space_num - (strlen(*(*(args_arg + i) + 0)) + 2 + strlen(*(*(args_arg + i) + 1)) + strlen(*(*(args_arg + i) + 2)));
-		fprintf(stdout, "\t%s, %s %s%*c%s\n", *(*(args_arg + i) + 0), *(*(args_arg + i) + 1), *(*(args_arg + i) + 2), num + 1, ' ', *(*(args_arg + i) + 3));
+	for (int i = 0; i < args_num; i++) {
+		int num = space_num - (strlen((args_arg + i)->i) + 2 + strlen((args_arg + i)->item) + strlen((args_arg + i)->argument));
+		fprintf(stdout, "\t%s, %s %s%*c%s\n", (args_arg + i)->i, (args_arg + i)->item, (args_arg + i)->argument, num + 1, ' ', (args_arg + i)->description);
 	}
 }
 
-void args_unknown_argument(char *option) {
-	fprintf(stdout, "Argument not found: %s\n", option);
-}
-
-void args_main(bool *keep_running, int argc, char **argv) {
+bool args_main(int argc, char **argv) {
 	for (int i = 1; i < argc; i++) {
-		if (!strcmp(*(*(args_arg + 0) + 0), *(argv + i)) || !strcmp(*(*(args_arg + 0) + 1), *(argv + i))) {
-			bool assign = true;
-			args_beatmap(&assign, *(argv + ++i));
-			if (!assign) {
-				fprintf(stdout, "Beatmap file not found: %s\n", *(argv + i));
+		bool not_found = true;
+		for (int j = 0; j < args_num; j++) {
+			if (!strcmp((args_arg + j)->i, *(argv + i)) || !strcmp((args_arg + j)->item, *(argv + i))) {
+				if ((args_arg + j)->e_function == bcp) {
+					if (!(args_arg + j)->function.bcp(*(argv + ++i))) {
+						return false;
+					}
+				} else if ((args_arg + j)->e_function == cp) {
+					(args_arg + j)->function.cp(*(argv + ++i));
+				} else if ((args_arg + j)->e_function == v) {
+					(args_arg + j)->function.v();
+				} else if ((args_arg + j)->e_function == rv) {
+					(args_arg + j)->function.v();
+					return false;
+				}
+				not_found = false;
+				break;
 			}
-		} else if (!strcmp(*(*(args_arg + 1) + 0), *(argv + i)) || !strcmp(*(*(args_arg + 1) + 1), *(argv + i))) {
-			bool assign = true;
-			args_output(&assign, *(argv + ++i));
-			if (!assign) {
-				fprintf(stdout, "Output file not possible: %s - defaulting to stdout\n", *(argv + i));
-				practise.output = stdout;
-			}
-		} else if (!strcmp(*(*(args_arg + 2) + 0), *(argv + i)) || !strcmp(*(*(args_arg + 2) + 1), *(argv + i))) {
-			args_time(*(argv + ++i));
-		} else if (!strcmp(*(*(args_arg + 3) + 0), *(argv + i)) || !strcmp(*(*(args_arg + 3) + 1), *(argv + i))) {
-			args_beginning(*(argv + ++i));
-		} else if (!strcmp(*(*(args_arg + 4) + 0), *(argv + i)) || !strcmp(*(*(args_arg + 4) + 1), *(argv + i))) {
-			args_rng();
-		} else if (!strcmp(*(*(args_arg + 5) + 0), *(argv + i)) || !strcmp(*(*(args_arg + 5) + 1), *(argv + i))) {
-			args_hardrock();
-		} else if (!strcmp(*(*(args_arg + args_arg_num - 1) + 0), *(argv + i)) || !strcmp(*(*(args_arg + args_arg_num - 1) + 1), *(argv + i))) {
-			args_help();
-			*keep_running = false;
-			return;
-		} else {
-			args_unknown_argument(*(argv + i));
-			*keep_running = false;
-			return;
+		}
+		if (not_found) {
+			fprintf(stdout, "Error: Argument not found: %s\n", *(argv + i));
+			return false;
 		}
 	}
 
@@ -115,7 +201,8 @@ void args_main(bool *keep_running, int argc, char **argv) {
 	}
 
 	if (practise.beatmap == NULL) {
-		*keep_running = false;
-		return;
+		return false;
 	}
+
+	return true;
 }

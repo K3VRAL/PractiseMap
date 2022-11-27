@@ -3,11 +3,6 @@
 
 #include <stdbool.h>
 #include <stdio.h>
-#include <unistd.h>
-#include <unistd.h>
-#include <sys/ioctl.h>
-
-#include <osu.h>
 
 typedef struct Practise {
 	FILE *beatmap;
@@ -17,8 +12,7 @@ typedef struct Practise {
 	struct {
 		int start;
 		int end;
-	} *time;
-	unsigned int time_num;
+	} time;
 
 	struct {
 		int time;

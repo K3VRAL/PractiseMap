@@ -2,12 +2,7 @@
 #define ARGS_H
 
 #include <stdbool.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 
-#include "practise.h"
-
-void args_main(bool *, int, char **);
+bool args_main(int, char **);
 
 #endif

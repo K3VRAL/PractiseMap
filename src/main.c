@@ -1,9 +1,12 @@
 #include "main.h"
 
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 int main(int argc, char **argv) {
 	// Handle arguments given and make a few tests before we run things
-	bool keep_running = true;
-	args_main(&keep_running, argc, argv);
+	bool keep_running = args_main(argc, argv);
 
 	if (keep_running) {
 		// Where the magic happens
@@ -17,6 +20,9 @@ int main(int argc, char **argv) {
 	if (practise.output != stdout && practise.output != NULL) {
 		fclose(practise.output);
 	}
+	if (practise.beginning != NULL) {
+		free(practise.beginning);
+	}
 
-	return 0;
+	return !keep_running;
 }
