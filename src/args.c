@@ -134,6 +134,16 @@ Args args_arg[args_num] = {
 			.v = args_hardrock
 		}
 	},
+	// { // TODO
+	// 	.i = "-i",
+	// 	.item = "--instant-skip",
+	// 	.argument = "",
+	// 	.description = "immediately skips map to the first object",
+	// 	.e_function = v,
+	// 	.function = {
+	// 		.v = 
+	// 	}
+	// },
 	{
 		.i = "-h",
 		.item = "--help",
