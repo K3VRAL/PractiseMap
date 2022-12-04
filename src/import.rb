@@ -5,6 +5,45 @@ module LIBOSU
 	ffi_lib FFI::Library::LIBC
 	ffi_lib "osu"
 
+	attach_function :fopen, [ :string, :string ], :pointer
+	attach_function :fclose, [ :pointer ], :void
+	attach_function :fprintf, [ :pointer, :string, :varargs ], :void
+
+	class LegacyRandom < FFI::Struct
+		layout	:x, :uint, 
+				:y, :uint, 
+				:z, :uint, 
+				:w, :uint, 
+				:bitBuffer, :uint, 
+				:bitIndex, :int
+	end
+	attach_variable :ooc_processor_RNGSEED, :int
+	attach_function :ou_legacyrandom_init, [ LegacyRandom.by_ref, :int ], :void
+
+	class Metadata < FFI::Struct
+		layout	:title, :string,
+				:title_unicode, :string,
+				:artist, :string,
+				:artist_unicode, :string,
+				:creator, :string,
+				:version, :string,
+				:source, :string,
+				:tags, :pointer,
+				:num_tag, :uint,
+				:beatmap_id, :int,
+				:beatmap_set_id, :int
+	end
+	attach_function :ofb_metadata_setfromstring, [ Metadata.by_ref, :string ], :void
+
+	class Difficulty < FFI::Struct
+		layout	:hp_drain_rate, :double,
+				:circle_size, :double,
+				:overall_difficulty, :double,
+				:approach_rate, :double,
+				:slider_multiplier, :double,
+				:slider_tick_rate, :double
+	end
+
 	class TimingPoint < FFI::Struct
 		layout	:time, :int,
 				:beat_length, :double,
@@ -69,8 +108,8 @@ module LIBOSU
 		layout	:structure, :pointer,
 				:general, :pointer,
 				:editor, :pointer,
-				:metadata, :pointer,
-				:difficulty, :pointer,
+				:metadata, Metadata.ptr,
+				:difficulty, Difficulty.ptr,
 				:events, :pointer,
 				:num_event, :uint,
 				:timing_points, TimingPoint.ptr,
@@ -80,11 +119,39 @@ module LIBOSU
 				:hit_objects, HitObject.ptr,
 				:num_ho, :uint32
 	end
+	attach_function :of_beatmap_init, [ Beatmap.by_ref ], :void
+	attach_function :of_beatmap_set, [ Beatmap.by_ref, :pointer ], :void
+	attach_function :of_beatmap_tofile, [ :pointer, Beatmap.by_value ], :void
+	attach_function :ofb_hitobject_tostring, [ :pointer, HitObject.by_value ], :void
 
-	attach_function :fopen, [:string, :string], :pointer
-
-	attach_function :of_beatmap_init, [Beatmap.by_ref], :void
-	attach_function :of_beatmap_set, [Beatmap.by_ref, :pointer], :void
-	
-	attach_function :oos_hitobject_freebulk, [HitObject.by_ref, :uint], :void
+	class CHO < FFI::Union
+		layout	:f, :pointer,
+				:js, :pointer,
+				:bs, :pointer,
+				:b, :pointer,
+				:d, :pointer,
+				:td, :pointer
+	end
+	enum :CHOType, [
+		:catchhitobject_fruit,
+		:catchhitobject_juicestream,
+		:catchhitobject_bananashower,
+		:catchhitobject_banana,
+		:catchhitobject_droplet,
+		:catchhitobject_tinydroplet
+	]
+	class CatchHitObject < FFI::Struct
+		layout	:start_time, :float,
+				:x, :float,
+				:x_offset, :float,
+				:type, :CHOType,
+				:cho, CHO,
+				:refer, HitObject.ptr
+	end
+	attach_function :ooc_fruit_init, [ CatchHitObject.by_ref, HitObject.by_ref ], :void
+	attach_function :ooc_juicestream_initwslidertp, [ CatchHitObject.by_ref, Difficulty.by_value, TimingPoint.ptr, :uint, HitObject.by_ref ], :void
+	attach_function :ooc_juicestream_createnestedjuice, [ CatchHitObject.by_ref ], :void
+	attach_function :ooc_bananashower_init, [ CatchHitObject.by_ref, HitObject.by_ref ], :void
+	attach_function :ooc_bananashower_createnestedbananas, [ CatchHitObject.by_ref ], :void
+	attach_function :ooc_processor_applypositionoffsetrng, [ CatchHitObject.by_ref, :uint, LegacyRandom.by_ref, :bool ], :void
 end
