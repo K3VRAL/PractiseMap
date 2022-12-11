@@ -54,7 +54,6 @@ def arguments_main
 		end
 
 		i.on("-r", "--rng [time,position]", "keeps track of the rng elements of the map and outputs it to the beginning of the map") do | r |
-			puts("#{r}")
 			str_split = r.split(",", 0)
 			if str_split.length() != 2
 				puts("Error: RNG [#{r}] requires the time and the position")

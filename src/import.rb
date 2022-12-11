@@ -61,9 +61,13 @@ module LIBOSU
 		:slidertype_linear, "L".ord,
 		:slidertype_perfectcurve, "P".ord
 	]
+	class HOSliderCurve < FFI::Struct
+		layout	:x, :int,
+				:y, :int
+	end
 	class HOSlider < FFI::Struct
 		layout	:curve_type, :SliderType,
-				:curves, :pointer,
+				:curves, HOSliderCurve.ptr,
 				:num_curve, :uint,
 				:slides, :int,
 				:length, :double,
@@ -144,7 +148,7 @@ module LIBOSU
 	attach_function :ooc_juicestream_createnestedjuice, [ CatchHitObject.by_ref ], :void
 	attach_function :ooc_bananashower_init, [ CatchHitObject.by_ref, HitObject.by_ref ], :void
 	attach_function :ooc_bananashower_createnestedbananas, [ CatchHitObject.by_ref ], :void
-	attach_function :ooc_processor_applypositionoffsetrng, [ CatchHitObject.by_ref, :uint, LegacyRandom.by_ref, :bool ], :void
+	attach_function :ooc_processor_applypositionoffsetrng, [ CatchHitObject.ptr, :uint, LegacyRandom.by_ref, :bool ], :void
 
 	class Beatmap < FFI::Struct
 		layout	:structure, :pointer,
@@ -165,5 +169,4 @@ module LIBOSU
 	attach_function :of_beatmap_set, [ Beatmap.by_ref, :pointer ], :void
 	attach_function :of_beatmap_tofile, [ :pointer, Beatmap.by_value ], :void
 	attach_function :ofb_hitobject_tostring, [ :pointer, HitObject.by_value ], :void
-	attach_function :ofb_hitobject_catchtostring, [ :pointer, CatchHitObject.by_value ], :void
 end

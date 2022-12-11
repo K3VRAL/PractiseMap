@@ -47,61 +47,101 @@ def practise_beginning(map)
 	end
 end
 
-POSITION = 256
-def practise_rng(hit_object, rng, map)
-	# TODO RNG/+HARDROCK
-	if !Practise.rng || hit_object[:time] >= Practise.time[:start]
-		return
-	end
-
-	object = LIBOSU::CatchHitObject.new
-
-	case hit_object[:type]
-	when :circle, :nc_circle
-		LIBOSU.ooc_fruit_init(object, hit_object)
-	when :slider, :nc_slider
-		LIBOSU.ooc_juicestream_initwslidertp(object, map[:difficulty], map[:timing_points], map[:num_tp], hit_object)
-		LIBOSU.ooc_juicestream_createnestedjuice(object)
-	when :spinner, :nc_spinner
-		LIBOSU.ooc_bananashower_init(object, hit_object)
-		LIBOSU.ooc_bananashower_createnestedbananas(object)
-	end
-
-	object
-	LIBOSU.ooc_processor_applypositionoffsetrng(object, 1, rng, Practise.hardrock)
-	
+def practise_rng(object)
 	case object[:type]
-	when :catchhitobject_fruit
-		print("[f #{object[:start_time].to_i} #{object[:x].to_i} #{object[:x_offset].to_i}]")
-		# POSITION - (object[:x].to_i + object[:x_offset].to_i)
-	when :catchhitobject_juicestream
-		js = LIBOSU::JuiceStream.new(object[:cho][:js])
-		print("[j]")
-		js[:num_nested].times do | i |
-			nested_object = LIBOSU::CatchHitObject.new(js[:nested].to_ptr + (i * LIBOSU::CatchHitObject.size))
-			print("[")
-			case nested_object[:type]
-			when :catchhitobject_fruit
-				print("f")
-			when :catchhitobject_droplet
-				print("d")
-			when :catchhitobject_tinydroplet
-				print("t")
-			end
-			print(" #{nested_object[:start_time].to_i} #{nested_object[:x].to_i} #{nested_object[:x_offset].to_i}]")
-		end
+	# when :catchhitobject_fruit
+	# 	# TODO make a check on if the fruit has it's x-axis changed
+	#	if $js_faster_length.nil? || $js_faster_length == 1
+	#		$js_faster_length = 1
+	#	end
+	# 	js_ho = LIBOSU::HitObject.new
+	# 	js_ho[:x] = Practise.rng[:position]
+	# 	js_ho[:y] = 384
+	# 	js_ho[:time] = Practise.rng[:time]
+	# 	js_ho[:type] = :nc_slider
+	# 	js_ho[:hit_sound] = 1
+	# 	js_ho[:ho][:slider][:curve_type] = :slidertype_linear
+	# 	js_ho[:ho][:slider][:curves] = LIBOSU::HOSliderCurve.new
+	# 	js_ho[:ho][:slider][:curves][:x] = Practise.rng[:position]
+	# 	js_ho[:ho][:slider][:curves][:y] = 0
+	# 	js_ho[:ho][:slider][:num_curve] = 1
+	# 	js_ho[:ho][:slider][:slides] = 1
+	# 	js_ho[:ho][:slider][:length] = $js_faster_length
+	# 	loop do
+	# 		js_obj = LIBOSU::CatchHitObject.new
+	# 		LIBOSU.ooc_juicestream_initwslidertp(js_obj, map[:difficulty], map[:timing_points], map[:num_tp], js_ho)
+	# 		LIBOSU.ooc_juicestream_createnestedjuice(js_obj)
+	# 		js_new = LIBOSU::JuiceStream.new(js_obj[:cho][:js])
+	# 		if js_new[:num_nested] == 4
+	# 			output = FFI::MemoryPointer.new(:pointer)
+	# 			LIBOSU.ofb_hitobject_tostring(output, js_ho)
+	# 			LIBOSU.fprintf(Practise.output, output.read_pointer.read_string)
+	# 			break
+	# 		end
+	# 		$js_faster_length += 1
+	# 		js_ho[:ho][:slider][:length] += 1
+	# 	end
+	# when :catchhitobject_juicestream
+	# 	# TODO
+	# 	js = LIBOSU::JuiceStream.new(object[:cho][:js])
+	# 	print("[j]")
+	# 	js[:num_nested].times do | i |
+	# 		nested_object = LIBOSU::CatchHitObject.new(js[:nested].to_ptr + (i * LIBOSU::CatchHitObject.size))
+	# 		print("[")
+	# 		case nested_object[:type]
+	# 		when :catchhitobject_fruit
+	# 			print("f")
+	# 		when :catchhitobject_droplet
+	# 			print("d")
+	# 		when :catchhitobject_tinydroplet
+	# 			print("t")
+	# 		end
+	# 		print(" #{nested_object[:start_time].to_i} #{nested_object[:x].to_i} #{nested_object[:x_offset].to_i}]")
+	# 	end
 	when :catchhitobject_bananashower
 		bs = LIBOSU::BananaShower.new(object[:cho][:bs])
-		bs[:num_banana].times do | i |
-			banana = LIBOSU::CatchHitObject.new(bs[:bananas].to_ptr)
-			print("[b #{banana[:start_time].to_i} #{banana[:x].to_i} #{banana[:x_offset].to_i}]")
+		num = bs[:num_banana]
+		if num % 2 != 0
+			if $bs_faster_endtime.nil? || $bs_faster_endtime == 1
+				$bs_faster_endtime = 1
+			end
+			bs_ho = LIBOSU::HitObject.new
+			bs_ho[:x] = 256
+			bs_ho[:y] = 192
+			bs_ho[:time] = Practise.rng[:time]
+			bs_ho[:type] = :nc_spinner
+			bs_ho[:hit_sound] = 1
+			bs_ho[:ho][:spinner][:end_time] = Practise.rng[:time] + $bs_faster_endtime
+			loop do
+				bs_obj = LIBOSU::CatchHitObject.new
+				LIBOSU.ooc_bananashower_init(bs_obj, bs_ho)
+				LIBOSU.ooc_bananashower_createnestedbananas(bs_obj)
+				bs_new = LIBOSU::BananaShower.new(bs_obj[:cho][:bs])
+				if bs_new[:num_banana] == 3
+					output = FFI::MemoryPointer.new(:pointer)
+					LIBOSU.ofb_hitobject_tostring(output, bs_ho)
+					LIBOSU.fprintf(Practise.output, output.read_pointer.read_string)
+					break
+				end
+				$bs_faster_endtime += 1
+				bs_ho[:ho][:spinner][:end_time] += 1
+			end
+			num -= 3
+		end
+		num /= 2
+		num.times do | i |
+			bs_ho = LIBOSU::HitObject.new
+			bs_ho[:x] = 256
+			bs_ho[:y] = 192
+			bs_ho[:time] = Practise.rng[:time]
+			bs_ho[:type] = :nc_spinner
+			bs_ho[:hit_sound] = 1
+			bs_ho[:ho][:spinner][:end_time] = Practise.rng[:time] + 1
+			output = FFI::MemoryPointer.new(:pointer)
+			LIBOSU.ofb_hitobject_tostring(output, bs_ho)
+			LIBOSU.fprintf(Practise.output, output.read_pointer.read_string)
 		end
 	end
-	puts("")
-
-	output = FFI::MemoryPointer.new(:pointer)
-	LIBOSU.ofb_hitobject_catchtostring(output, object);
-	LIBOSU.fprintf(Practise.output, output.read_pointer.read_string)
 end
 
 def practise_time(hit_object)
@@ -121,13 +161,40 @@ def practise_main
 
 	practise_rename(map)
 	practise_beginning(map)
-
-	rng = LIBOSU::LegacyRandom.new
-	LIBOSU.ou_legacyrandom_init(rng, LIBOSU.ooc_processor_RNGSEED)
 	
+	if Practise.rng[:time].nil? || Practise.rng[:position].nil?
+		rng = LIBOSU::LegacyRandom.new
+		LIBOSU.ou_legacyrandom_init(rng, LIBOSU.ooc_processor_RNGSEED)
+		# objects = Array.new # TODO make an array of `CatchHitObjects` and get them stored where we later apply their offsets
+		
+		map[:num_ho].times do | i |
+			if hit_object[:time] >= Practise.time[:start]
+				break
+			end
+			hit_object = LIBOSU::HitObject.new(map[:hit_objects].to_ptr + (i * LIBOSU::HitObject.size))
+			object = LIBOSU::CatchHitObject.new
+			case hit_object[:type]
+			when :circle, :nc_circle
+				if !Practise.hardrock
+					return
+				end
+				LIBOSU.ooc_fruit_init(object, hit_object)
+			when :slider, :nc_slider
+				LIBOSU.ooc_juicestream_initwslidertp(object, map[:difficulty], map[:timing_points], map[:num_tp], hit_object)
+				LIBOSU.ooc_juicestream_createnestedjuice(object)
+			when :spinner, :nc_spinner
+				LIBOSU.ooc_bananashower_init(object, hit_object)
+				LIBOSU.ooc_bananashower_createnestedbananas(object)
+			end
+			# objects.push(object)
+		end
+
+		LIBOSU.ooc_processor_applypositionoffsetrng(object, , rng, Practise.hardrock)
+		practise_rng(hit_object)
+	end
+
 	map[:num_ho].times do | i |
 		hit_object = LIBOSU::HitObject.new(map[:hit_objects].to_ptr + (i * LIBOSU::HitObject.size))
-		practise_rng(hit_object, rng, map)
 		practise_time(hit_object)
 	end
 
