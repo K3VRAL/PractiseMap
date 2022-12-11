@@ -56,10 +56,10 @@ module LIBOSU
 	end
 
 	enum :SliderType, [
-		:slidertype_catmull, 'C'.ord,
-		:slidertype_bezier, 'B'.ord,
-		:slidertype_linear, 'L'.ord,
-		:slidertype_perfectcurve, 'P'.ord
+		:slidertype_catmull, "C".ord,
+		:slidertype_bezier, "B".ord,
+		:slidertype_linear, "L".ord,
+		:slidertype_perfectcurve, "P".ord
 	]
 	class HOSlider < FFI::Struct
 		layout	:curve_type, :SliderType,
@@ -104,30 +104,10 @@ module LIBOSU
 				:hit_sample, HOSample
 	end
 
-	class Beatmap < FFI::Struct
-		layout	:structure, :pointer,
-				:general, :pointer,
-				:editor, :pointer,
-				:metadata, Metadata.ptr,
-				:difficulty, Difficulty.ptr,
-				:events, :pointer,
-				:num_event, :uint,
-				:timing_points, TimingPoint.ptr,
-				:num_tp, :uint,
-				:colours, :pointer,
-				:num_colour, :uint,
-				:hit_objects, HitObject.ptr,
-				:num_ho, :uint32
-	end
-	attach_function :of_beatmap_init, [ Beatmap.by_ref ], :void
-	attach_function :of_beatmap_set, [ Beatmap.by_ref, :pointer ], :void
-	attach_function :of_beatmap_tofile, [ :pointer, Beatmap.by_value ], :void
-	attach_function :ofb_hitobject_tostring, [ :pointer, HitObject.by_value ], :void
-
 	class CHO < FFI::Union
 		layout	:f, :pointer,
-				:js, :pointer,
-				:bs, :pointer,
+				:js, :pointer, # Would've been nice if I could forward declare this
+				:bs, :pointer, # Would've been nice if I could forward declare this
 				:b, :pointer,
 				:d, :pointer,
 				:td, :pointer
@@ -148,10 +128,42 @@ module LIBOSU
 				:cho, CHO,
 				:refer, HitObject.ptr
 	end
+	class JuiceStream < FFI::Struct
+		layout	:nested, CatchHitObject.ptr,
+				:num_nested, :uint,
+				:slider_data, :pointer
+	end
+	class BananaShower < FFI::Struct
+		layout	:end_time, :int,
+				:duration, :int,
+				:bananas, CatchHitObject.ptr,
+				:num_banana, :uint
+	end
 	attach_function :ooc_fruit_init, [ CatchHitObject.by_ref, HitObject.by_ref ], :void
 	attach_function :ooc_juicestream_initwslidertp, [ CatchHitObject.by_ref, Difficulty.by_value, TimingPoint.ptr, :uint, HitObject.by_ref ], :void
 	attach_function :ooc_juicestream_createnestedjuice, [ CatchHitObject.by_ref ], :void
 	attach_function :ooc_bananashower_init, [ CatchHitObject.by_ref, HitObject.by_ref ], :void
 	attach_function :ooc_bananashower_createnestedbananas, [ CatchHitObject.by_ref ], :void
 	attach_function :ooc_processor_applypositionoffsetrng, [ CatchHitObject.by_ref, :uint, LegacyRandom.by_ref, :bool ], :void
+
+	class Beatmap < FFI::Struct
+		layout	:structure, :pointer,
+				:general, :pointer,
+				:editor, :pointer,
+				:metadata, Metadata.ptr,
+				:difficulty, Difficulty.ptr,
+				:events, :pointer,
+				:num_event, :uint,
+				:timing_points, TimingPoint.ptr,
+				:num_tp, :uint,
+				:colours, :pointer,
+				:num_colour, :uint,
+				:hit_objects, HitObject.ptr,
+				:num_ho, :uint32
+	end
+	attach_function :of_beatmap_init, [ Beatmap.by_ref ], :void
+	attach_function :of_beatmap_set, [ Beatmap.by_ref, :pointer ], :void
+	attach_function :of_beatmap_tofile, [ :pointer, Beatmap.by_value ], :void
+	attach_function :ofb_hitobject_tostring, [ :pointer, HitObject.by_value ], :void
+	attach_function :ofb_hitobject_catchtostring, [ :pointer, CatchHitObject.by_value ], :void
 end

@@ -3,7 +3,7 @@ require "optparse"
 require_relative "practise"
 
 def arguments_main
-	ARGV << '-h' if ARGV.empty?
+	ARGV << "-h" if ARGV.empty?
 
 	OptionParser.new do | i |
 		i.banner = "usage: pracmap [options]"
@@ -28,14 +28,14 @@ def arguments_main
 			end
 			fp = LIBOSU.fopen(o, "w")
 			if fp.null?
-				puts("Error: Output file [#{o}] was not possible")
+				puts("Error: Output file [#{o}] is not possible")
 				exit(1)
 			end
 			Practise.output = fp
 		end
 
 		i.on("-t", "--time start,end", "start and end time to start including the objects") do | t |
-			str_split = t.split(',', 0)
+			str_split = t.split(",", 0)
 			if str_split.length() != 2
 				puts("Error: Time [#{t}] requires the start time and end time")
 				exit(1)
@@ -45,19 +45,23 @@ def arguments_main
 		end
 
 		i.on("-g", "--beginning [time,amount]", "gives the time and amount of objects to be placed before the beatmap starts") do | g |
-			str_split = g.split(',', 0)
+			str_split = g.split(",", 0)
 			if str_split.length() != 2
 				puts("Error: Beginning [#{t}] requires the time and the amount")
 				exit(1)
 			end
-			beg = (Struct.new(:time, :amount)).new # TODO make this apart the class
-			beg[:time] = str_split[0].to_i
-			beg[:amount] = str_split[1].to_i
-			Practise.beginning.push(beg)
+			Practise.add_beginning(str_split[0].to_i, str_split[1].to_i)
 		end
 
-		i.on("-r", "--rng", "keeps track of the rng elements of the map and outputs it to the beginning of the map") do
-			Practise.rng = true
+		i.on("-r", "--rng [time,position]", "keeps track of the rng elements of the map and outputs it to the beginning of the map") do | r |
+			puts("#{r}")
+			str_split = r.split(",", 0)
+			if str_split.length() != 2
+				puts("Error: RNG [#{r}] requires the time and the position")
+				exit(1)
+			end
+			Practise.rng[:time] = str_split[0].to_i
+			Practise.rng[:position] = str_split[1].to_i
 		end
 
 		i.on("-d", "--hardrock", "keeps track of the rng elements given that hardrock is enabled; relies on `-r` to be used") do
