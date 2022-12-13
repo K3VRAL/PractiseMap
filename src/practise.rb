@@ -207,7 +207,7 @@ def practise_main
 		objects, objects_num = practise_rng_processor(map)
 		objects_num.times do | i |
 			object = LIBOSU::CatchHitObject.new(objects.to_ptr + (i * LIBOSU::CatchHitObject.size))
-			# practise_rng(object)
+			practise_rng(object)
 		end
 	end
 
