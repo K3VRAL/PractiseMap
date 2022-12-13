@@ -148,7 +148,7 @@ module LIBOSU
 	attach_function :ooc_juicestream_createnestedjuice, [ CatchHitObject.by_ref ], :void
 	attach_function :ooc_bananashower_init, [ CatchHitObject.by_ref, HitObject.by_ref ], :void
 	attach_function :ooc_bananashower_createnestedbananas, [ CatchHitObject.by_ref ], :void
-	attach_function :ooc_processor_applypositionoffsetrng, [ CatchHitObject.ptr, :uint, LegacyRandom.by_ref, :bool ], :void
+	attach_function :ooc_processor_applypositionoffsetrng, [ :pointer, :uint, LegacyRandom.by_ref, :bool ], :void
 
 	class Beatmap < FFI::Struct
 		layout	:structure, :pointer,

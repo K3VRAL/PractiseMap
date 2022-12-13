@@ -47,10 +47,46 @@ def practise_beginning(map)
 	end
 end
 
+def practise_rng_processor(map)
+	objects_arr = Array.new
+	map[:num_ho].times do | i |
+		hit_object = LIBOSU::HitObject.new(map[:hit_objects].to_ptr + (i * LIBOSU::HitObject.size))
+		if hit_object[:time] >= Practise.time[:start]
+			break
+		end
+		object = LIBOSU::CatchHitObject.new
+		case hit_object[:type]
+		when :circle, :nc_circle
+			LIBOSU.ooc_fruit_init(object, hit_object)
+		when :slider, :nc_slider
+			LIBOSU.ooc_juicestream_initwslidertp(object, map[:difficulty], map[:timing_points], map[:num_tp], hit_object)
+			LIBOSU.ooc_juicestream_createnestedjuice(object)
+		when :spinner, :nc_spinner
+			LIBOSU.ooc_bananashower_init(object, hit_object)
+			LIBOSU.ooc_bananashower_createnestedbananas(object)
+		end
+		objects_arr.push(object)
+	end
+
+	objects = FFI::MemoryPointer.new(LIBOSU::CatchHitObject, objects_arr.size)
+	objects_arr.size.times do | i |
+		# TODO an issue is here			  |        |
+		objects.put(LIBOSU::CatchHitObject.by_value, i, objects_arr[i])
+		temp = LIBOSU::CatchHitObject.new(objects + (i * LIBOSU::CatchHitObject.size))
+		puts("#{objects_arr[i][:start_time]} #{temp[:start_time]}")
+	end
+
+	rng = LIBOSU::LegacyRandom.new
+	LIBOSU.ou_legacyrandom_init(rng, LIBOSU.ooc_processor_RNGSEED)
+	LIBOSU.ooc_processor_applypositionoffsetrng(objects, objects_arr.size, rng, Practise.hardrock)
+
+	return objects, objects_arr.size
+end
+
 def practise_rng(object)
 	case object[:type]
 	# when :catchhitobject_fruit
-	# 	# TODO make a check on if the fruit has it's x-axis changed
+	# 	# TODO
 	#	if $js_faster_length.nil? || $js_faster_length == 1
 	#		$js_faster_length = 1
 	#	end
@@ -155,44 +191,27 @@ def practise_time(hit_object)
 end
 
 def practise_main
+	# Create the map to store all the data in
 	map = LIBOSU::Beatmap.new
 	LIBOSU.of_beatmap_init(map)
 	LIBOSU.of_beatmap_set(map, Practise.beatmap)
 
+	# Rename the map to tell the player what section of the map they are playing
 	practise_rename(map)
+
+	# Populate map with the `beginning` argument
 	practise_beginning(map)
 	
-	if Practise.rng[:time].nil? || Practise.rng[:position].nil?
-		rng = LIBOSU::LegacyRandom.new
-		LIBOSU.ou_legacyrandom_init(rng, LIBOSU.ooc_processor_RNGSEED)
-		# objects = Array.new # TODO make an array of `CatchHitObjects` and get them stored where we later apply their offsets
-		
-		map[:num_ho].times do | i |
-			if hit_object[:time] >= Practise.time[:start]
-				break
-			end
-			hit_object = LIBOSU::HitObject.new(map[:hit_objects].to_ptr + (i * LIBOSU::HitObject.size))
-			object = LIBOSU::CatchHitObject.new
-			case hit_object[:type]
-			when :circle, :nc_circle
-				if !Practise.hardrock
-					return
-				end
-				LIBOSU.ooc_fruit_init(object, hit_object)
-			when :slider, :nc_slider
-				LIBOSU.ooc_juicestream_initwslidertp(object, map[:difficulty], map[:timing_points], map[:num_tp], hit_object)
-				LIBOSU.ooc_juicestream_createnestedjuice(object)
-			when :spinner, :nc_spinner
-				LIBOSU.ooc_bananashower_init(object, hit_object)
-				LIBOSU.ooc_bananashower_createnestedbananas(object)
-			end
-			# objects.push(object)
+	# Process rng and populate map based on the rng
+	if !(Practise.rng[:time].nil? || Practise.rng[:position].nil?)
+		objects, objects_num = practise_rng_processor(map)
+		objects_num.times do | i |
+			object = LIBOSU::CatchHitObject.new(objects.to_ptr + (i * LIBOSU::CatchHitObject.size))
+			# practise_rng(object)
 		end
-
-		LIBOSU.ooc_processor_applypositionoffsetrng(object, , rng, Practise.hardrock)
-		practise_rng(hit_object)
 	end
 
+	# Record only the requested sections of the map
 	map[:num_ho].times do | i |
 		hit_object = LIBOSU::HitObject.new(map[:hit_objects].to_ptr + (i * LIBOSU::HitObject.size))
 		practise_time(hit_object)
