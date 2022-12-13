@@ -10,18 +10,19 @@ module LIBOSU
 	attach_function :fprintf, [ :pointer, :string, :varargs ], :void
 
 	class LegacyRandom < FFI::Struct
-		layout	:x, :uint, 
+		layout(	:x, :uint, 
 				:y, :uint, 
 				:z, :uint, 
 				:w, :uint, 
 				:bitBuffer, :uint, 
 				:bitIndex, :int
+		)
 	end
 	attach_variable :ooc_processor_RNGSEED, :int
 	attach_function :ou_legacyrandom_init, [ LegacyRandom.by_ref, :int ], :void
 
 	class Metadata < FFI::Struct
-		layout	:title, :string,
+		layout(	:title, :string,
 				:title_unicode, :string,
 				:artist, :string,
 				:artist_unicode, :string,
@@ -32,20 +33,22 @@ module LIBOSU
 				:num_tag, :uint,
 				:beatmap_id, :int,
 				:beatmap_set_id, :int
+		)
 	end
 	attach_function :ofb_metadata_setfromstring, [ Metadata.by_ref, :string ], :void
 
 	class Difficulty < FFI::Struct
-		layout	:hp_drain_rate, :double,
+		layout(	:hp_drain_rate, :double,
 				:circle_size, :double,
 				:overall_difficulty, :double,
 				:approach_rate, :double,
 				:slider_multiplier, :double,
 				:slider_tick_rate, :double
+		)
 	end
 
 	class TimingPoint < FFI::Struct
-		layout	:time, :int,
+		layout(	:time, :int,
 				:beat_length, :double,
 				:meter, :int,
 				:sample_set, :int,
@@ -53,6 +56,7 @@ module LIBOSU
 				:volume, :int,
 				:uninherited, :bool,
 				:effects, :int
+		)
 	end
 
 	enum :SliderType, [
@@ -62,11 +66,12 @@ module LIBOSU
 		:slidertype_perfectcurve, "P".ord
 	]
 	class HOSliderCurve < FFI::Struct
-		layout	:x, :int,
+		layout(	:x, :int,
 				:y, :int
+		)
 	end
 	class HOSlider < FFI::Struct
-		layout	:curve_type, :SliderType,
+		layout(	:curve_type, :SliderType,
 				:curves, HOSliderCurve.ptr,
 				:num_curve, :uint,
 				:slides, :int,
@@ -75,20 +80,24 @@ module LIBOSU
 				:num_edge_sound, :uint,
 				:edge_sets, :pointer,
 				:num_edge_set, :uint 
+		)
 	end
 	class HOSpinner < FFI::Struct
-		layout	:end_time, :int
+		layout(	:end_time, :int
+		)
 	end
 	class HOSample < FFI::Struct
-		layout	:normal_set, :int,
+		layout(	:normal_set, :int,
 				:addition_set, :int,
 				:index, :int,
 				:volume, :int,
 				:filename, :string
+		)
 	end
 	class HO < FFI::Union
-		layout	:slider, HOSlider,
+		layout(	:slider, HOSlider,
 				:spinner, HOSpinner
+		)
 	end
 	enum :HOType, [
 		:circle, 1,
@@ -99,22 +108,24 @@ module LIBOSU
 		:nc_spinner, 12
 	]
 	class HitObject < FFI::Struct
-		layout	:x, :int,
+		layout(	:x, :int,
 				:y, :int,
 				:time, :int,
 				:type, :HOType,
 				:hit_sound, :int,
 				:ho, HO,
 				:hit_sample, HOSample
+		)
 	end
 
 	class CHO < FFI::Union
-		layout	:f, :pointer,
+		layout(	:f, :pointer,
 				:js, :pointer, # Would've been nice if I could forward declare this
 				:bs, :pointer, # Would've been nice if I could forward declare this
 				:b, :pointer,
 				:d, :pointer,
 				:td, :pointer
+		)
 	end
 	enum :CHOType, [
 		:catchhitobject_fruit,
@@ -125,23 +136,26 @@ module LIBOSU
 		:catchhitobject_tinydroplet
 	]
 	class CatchHitObject < FFI::Struct
-		layout	:start_time, :float,
+		layout(	:start_time, :float,
 				:x, :float,
 				:x_offset, :float,
 				:type, :CHOType,
 				:cho, CHO,
 				:refer, HitObject.ptr
+		)
 	end
 	class JuiceStream < FFI::Struct
-		layout	:nested, CatchHitObject.ptr,
+		layout(	:nested, CatchHitObject.ptr,
 				:num_nested, :uint,
 				:slider_data, :pointer
+		)
 	end
 	class BananaShower < FFI::Struct
-		layout	:end_time, :int,
+		layout(	:end_time, :int,
 				:duration, :int,
 				:bananas, CatchHitObject.ptr,
 				:num_banana, :uint
+		)
 	end
 	attach_function :ooc_fruit_init, [ CatchHitObject.by_ref, HitObject.by_ref ], :void
 	attach_function :ooc_juicestream_initwslidertp, [ CatchHitObject.by_ref, Difficulty.by_value, TimingPoint.ptr, :uint, HitObject.by_ref ], :void
@@ -151,7 +165,7 @@ module LIBOSU
 	attach_function :ooc_processor_applypositionoffsetrng, [ :pointer, :uint, LegacyRandom.by_ref, :bool ], :void
 
 	class Beatmap < FFI::Struct
-		layout	:structure, :pointer,
+		layout(	:structure, :pointer,
 				:general, :pointer,
 				:editor, :pointer,
 				:metadata, Metadata.ptr,
@@ -164,6 +178,7 @@ module LIBOSU
 				:num_colour, :uint,
 				:hit_objects, HitObject.ptr,
 				:num_ho, :uint32
+		)
 	end
 	attach_function :of_beatmap_init, [ Beatmap.by_ref ], :void
 	attach_function :of_beatmap_set, [ Beatmap.by_ref, :pointer ], :void

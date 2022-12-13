@@ -70,11 +70,15 @@ def practise_rng_processor(map)
 
 	objects = FFI::MemoryPointer.new(LIBOSU::CatchHitObject, objects_arr.size)
 	objects_arr.size.times do | i |
-		# TODO an issue is here			  |        |
-		objects.put(LIBOSU::CatchHitObject.by_value, i, objects_arr[i])
-		temp = LIBOSU::CatchHitObject.new(objects + (i * LIBOSU::CatchHitObject.size))
-		puts("#{objects_arr[i][:start_time]} #{temp[:start_time]}")
+		# TODO an issue is here
+		object_ptr = LIBOSU::CatchHitObject.new(objects + (i * LIBOSU::CatchHitObject.size)) # TODO bad alloc
+		object_ptr = objects_arr[i]
+		puts("#{objects_arr[i][:start_time]} #{object_ptr[:start_time]}")
 	end
+	object_ptr = LIBOSU::CatchHitObject.new(objects)
+	puts("#{objects_arr[0][:start_time]} #{object_ptr[:start_time]}")
+
+	exit(1)
 
 	rng = LIBOSU::LegacyRandom.new
 	LIBOSU.ou_legacyrandom_init(rng, LIBOSU.ooc_processor_RNGSEED)
