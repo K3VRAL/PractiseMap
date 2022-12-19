@@ -68,17 +68,11 @@ def practise_rng_processor(map)
 		objects_arr.push(object)
 	end
 
+	# TODO error here, convert ruby array to pointer array of struct
 	objects = FFI::MemoryPointer.new(LIBOSU::CatchHitObject, objects_arr.size)
-	objects_arr.size.times do | i |
-		# TODO an issue is here
-		object_ptr = LIBOSU::CatchHitObject.new(objects + (i * LIBOSU::CatchHitObject.size)) # TODO bad alloc
-		object_ptr = objects_arr[i]
-		puts("#{objects_arr[i][:start_time]} #{object_ptr[:start_time]}")
+	objects_arr.length.times do | i |
+		objects.put(LIBOSU::CatchHitObject, i, objects_arr[i])
 	end
-	object_ptr = LIBOSU::CatchHitObject.new(objects)
-	puts("#{objects_arr[0][:start_time]} #{object_ptr[:start_time]}")
-
-	exit(1)
 
 	rng = LIBOSU::LegacyRandom.new
 	LIBOSU.ou_legacyrandom_init(rng, LIBOSU.ooc_processor_RNGSEED)
@@ -89,38 +83,38 @@ end
 
 def practise_rng(object)
 	case object[:type]
-	# when :catchhitobject_fruit
-	# 	# TODO
-	#	if $js_faster_length.nil? || $js_faster_length == 1
-	#		$js_faster_length = 1
-	#	end
-	# 	js_ho = LIBOSU::HitObject.new
-	# 	js_ho[:x] = Practise.rng[:position]
-	# 	js_ho[:y] = 384
-	# 	js_ho[:time] = Practise.rng[:time]
-	# 	js_ho[:type] = :nc_slider
-	# 	js_ho[:hit_sound] = 1
-	# 	js_ho[:ho][:slider][:curve_type] = :slidertype_linear
-	# 	js_ho[:ho][:slider][:curves] = LIBOSU::HOSliderCurve.new
-	# 	js_ho[:ho][:slider][:curves][:x] = Practise.rng[:position]
-	# 	js_ho[:ho][:slider][:curves][:y] = 0
-	# 	js_ho[:ho][:slider][:num_curve] = 1
-	# 	js_ho[:ho][:slider][:slides] = 1
-	# 	js_ho[:ho][:slider][:length] = $js_faster_length
-	# 	loop do
-	# 		js_obj = LIBOSU::CatchHitObject.new
-	# 		LIBOSU.ooc_juicestream_initwslidertp(js_obj, map[:difficulty], map[:timing_points], map[:num_tp], js_ho)
-	# 		LIBOSU.ooc_juicestream_createnestedjuice(js_obj)
-	# 		js_new = LIBOSU::JuiceStream.new(js_obj[:cho][:js])
-	# 		if js_new[:num_nested] == 4
-	# 			output = FFI::MemoryPointer.new(:pointer)
-	# 			LIBOSU.ofb_hitobject_tostring(output, js_ho)
-	# 			LIBOSU.fprintf(Practise.output, output.read_pointer.read_string)
-	# 			break
-	# 		end
-	# 		$js_faster_length += 1
-	# 		js_ho[:ho][:slider][:length] += 1
-	# 	end
+	when :catchhitobject_fruit
+		# TODO Make sure this is correct
+		if $js_faster_length.nil? || $js_faster_length == 1
+			$js_faster_length = 1
+		end
+		js_ho = LIBOSU::HitObject.new
+		js_ho[:x] = Practise.rng[:position]
+		js_ho[:y] = 384
+		js_ho[:time] = Practise.rng[:time]
+		js_ho[:type] = :nc_slider
+		js_ho[:hit_sound] = 1
+		js_ho[:ho][:slider][:curve_type] = :slidertype_linear
+		js_ho[:ho][:slider][:curves] = LIBOSU::HOSliderCurve.new
+		js_ho[:ho][:slider][:curves][:x] = Practise.rng[:position]
+		js_ho[:ho][:slider][:curves][:y] = 0
+		js_ho[:ho][:slider][:num_curve] = 1
+		js_ho[:ho][:slider][:slides] = 1
+		js_ho[:ho][:slider][:length] = $js_faster_length
+		loop do
+			js_obj = LIBOSU::CatchHitObject.new
+			LIBOSU.ooc_juicestream_initwslidertp(js_obj, map[:difficulty], map[:timing_points], map[:num_tp], js_ho)
+			LIBOSU.ooc_juicestream_createnestedjuice(js_obj)
+			js_new = LIBOSU::JuiceStream.new(js_obj[:cho][:js])
+			if js_new[:num_nested] == 4
+				output = FFI::MemoryPointer.new(:pointer)
+				LIBOSU.ofb_hitobject_tostring(output, js_ho)
+				LIBOSU.fprintf(Practise.output, output.read_pointer.read_string)
+				break
+			end
+			$js_faster_length += 1
+			js_ho[:ho][:slider][:length] += 1
+		end
 	# when :catchhitobject_juicestream
 	# 	# TODO
 	# 	js = LIBOSU::JuiceStream.new(object[:cho][:js])
