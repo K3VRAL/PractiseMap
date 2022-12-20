@@ -8,12 +8,12 @@
 
 bool args_beatmap(char *option) {
 	if (practise.beatmap != NULL) {
-		fprintf(stdout, "Error: Input file has already been inputted\n");
+		fprintf(stdout, "Input file has already been inputted despite attempting to input [%s]\n", option);
 		return false;
 	}
 	FILE *fp = fopen(option, "r");
 	if (fp == NULL) {
-		fprintf(stdout, "Error: Input file returned an error\n");
+		fprintf(stdout, "Error: Input file [%s] has not been found\n", option);
 		return false;
 	}
 	practise.beatmap = fp;
@@ -22,31 +22,56 @@ bool args_beatmap(char *option) {
 
 bool args_output(char *option) {
 	if (practise.output != NULL) {
-		fprintf(stdout, "Error: Output file has already been inputted\n");
+		fprintf(stdout, "Error: Output file has already been inputted despite attempting to input [%s]\n", option);
 		return false;
 	}
 	FILE *fp = fopen(option, "w");
 	if (fp == NULL) {
-		fprintf(stdout, "Error: Output file is returned an error\n");
+		fprintf(stdout, "Error: Output file [%s] is not possible\n", option);
 		return false;
 	}
 	practise.output = fp;
 	return true;
 }
 
-void args_time(char *option) {
-	practise.time.start = (int) strtol(strtok(option, ","), NULL, 10);
-	practise.time.end = strtol(strtok(NULL, ","), NULL, 10);
+bool args_time(char *option) {
+	char *start = strtok(option, ",");
+	char *end = strtok(NULL, ",");
+	if (start == NULL || end == NULL) {
+		fprintf(stdout, "Error: Time [%s] [%s][%s] requires the start time and end time\n", option, start, end);
+		return false;
+	}
+
+	practise.time.start = (int) strtol(start, NULL, 10);
+	practise.time.end = strtol(end, NULL, 10);
+	return true;
 }
 
-void args_beginning(char *option) {
+bool args_beginning(char *option) {
+	char *time = strtok(option, ",");
+	char *amount = strtok(NULL, ",");
+	if (time == NULL || amount == NULL) {
+		fprintf(stdout, "Error: Beginning [%s] [%s][%s] requires the time and the amount\n", option, time, amount);
+		return false;
+	}
+
 	practise.beginning = realloc(practise.beginning, ++practise.beginning_num * sizeof(*practise.beginning));
-	(practise.beginning + practise.beginning_num - 1)->time = (int) strtol(strtok(option, ","), NULL, 10);
-	(practise.beginning + practise.beginning_num - 1)->num = strtoul(strtok(NULL, ","), NULL, 10);
+	(practise.beginning + practise.beginning_num - 1)->time = (int) strtol(time, NULL, 10);
+	(practise.beginning + practise.beginning_num - 1)->amount = strtoul(amount, NULL, 10);
+	return true;
 }
 
-void args_rng(void) {
-	practise.rng = true;
+bool args_rng(char *option) {
+	char *time = strtok(option, ",");
+	char *position = strtok(NULL, ",");
+	if (time == NULL || position == NULL) {
+		fprintf(stdout, "Error: RNG [%s] [%s][%s] requires the time and the position\n", option, time, position);
+		return false;
+	}
+
+	practise.rng.time = (int) strtol(time, NULL, 10);
+	practise.rng.position = strtoul(position, NULL, 10);
+	return true;
 }
 
 void args_hardrock(void) {
@@ -61,14 +86,12 @@ typedef struct Args {
 	char *argument;
 	char *description;
 	enum {
-		bcp,
 		cp,
 		v,
 		rv
 	} e_function;
 	union {
-		bool (*bcp)(char *);
-		void (*cp)(char *);
+		bool (*cp)(char *);
 		void (*v)(void);
 	} function;
 } Args;
@@ -78,20 +101,20 @@ Args args_arg[args_num] = {
 		.i = "-b",
 		.item = "--beatmap",
 		.argument = "file",
-		.description = "inputs the beatmap from the file location",
-		.e_function = bcp,
+		.description = "inputs the file to be read and manipulated",
+		.e_function = cp,
 		.function = {
-			.bcp = args_beatmap
+			.cp = args_beatmap
 		}
 	},
 	{
 		.i = "-o",
 		.item = "--output",
 		.argument = "[file]",
-		.description = "outputs the objects to the file location",
-		.e_function = bcp,
+		.description = "outputs the manipulated file",
+		.e_function = cp,
 		.function = {
-			.bcp = args_output
+			.cp = args_output
 		}
 	},
 	{
@@ -119,16 +142,16 @@ Args args_arg[args_num] = {
 		.item = "--rng",
 		.argument = "",
 		.description = "keeps track of the rng elements of the map and outputs it to the beginning of the map",
-		.e_function = v,
+		.e_function = cp,
 		.function = {
-			.v = args_rng
+			.cp = args_rng
 		}
 	},
 	{
 		.i = "-d",
 		.item = "--hardrock",
 		.argument = "",
-		.description = "keeps track of the rng elements given that hardrock is enabled; relies on `-r` to be enabled",
+		.description = "keeps track of the rng elements given that hardrock is enabled; relies on `-r` to be used",
 		.e_function = v,
 		.function = {
 			.v = args_hardrock
@@ -184,12 +207,10 @@ bool args_main(int argc, char **argv) {
 		bool not_found = true;
 		for (int j = 0; j < args_num; j++) {
 			if (!strcmp((args_arg + j)->i, *(argv + i)) || !strcmp((args_arg + j)->item, *(argv + i))) {
-				if ((args_arg + j)->e_function == bcp) {
-					if (!(args_arg + j)->function.bcp(*(argv + ++i))) {
+				if ((args_arg + j)->e_function == cp) {
+					if (!(args_arg + j)->function.cp(*(argv + ++i))) {
 						return false;
 					}
-				} else if ((args_arg + j)->e_function == cp) {
-					(args_arg + j)->function.cp(*(argv + ++i));
 				} else if ((args_arg + j)->e_function == v) {
 					(args_arg + j)->function.v();
 				} else if ((args_arg + j)->e_function == rv) {

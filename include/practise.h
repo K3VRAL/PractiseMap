@@ -16,11 +16,14 @@ typedef struct Practise {
 
 	struct {
 		int time;
-		unsigned int num;
+		unsigned int amount;
 	} *beginning;
 	unsigned int beginning_num;
 
-	bool rng;
+	struct {
+		int time;
+		unsigned short position;
+	} rng;
 	bool hardrock;
 } Practise;
 
