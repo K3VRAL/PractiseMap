@@ -64,26 +64,26 @@ void practise_beginning(Beatmap map) {
 	}
 }
 
-CatchHitObject *practise_rng_processor(HitObject hit_object, Beatmap map, LegacyRandom *rng, float **last_position, double *last_start_time) {
-	if (hit_object.time >= practise.time.start) {
+CatchHitObject *practise_rng_processor(HitObject *hit_object, Beatmap map, LegacyRandom *rng, float **last_position, double *last_start_time) {
+	if (hit_object->time >= practise.time.start) {
 		return NULL;
 	}
 	CatchHitObject *object = calloc(1, sizeof(*object));
-	switch (hit_object.type) {
+	switch (hit_object->type) {
 		case circle:
 		case nc_circle:
-			ooc_fruit_init(object, &hit_object);
+			ooc_fruit_init(object, hit_object);
 			break;
 
 		case slider:
 		case nc_slider:
-			ooc_juicestream_initwslidertp(object, *map.difficulty, map.timing_points, map.num_tp, &hit_object);
+			ooc_juicestream_initwslidertp(object, *map.difficulty, map.timing_points, map.num_tp, hit_object);
 			ooc_juicestream_createnestedjuice(object);
 			break;
 
 		case spinner:
 		case nc_spinner:
-			ooc_bananashower_init(object, &hit_object);
+			ooc_bananashower_init(object, hit_object);
 			ooc_bananashower_createnestedbananas(object);
 			break;
 	}
@@ -94,6 +94,7 @@ CatchHitObject *practise_rng_processor(HitObject hit_object, Beatmap map, Legacy
 void practise_rng(CatchHitObject object, Beatmap map) {
 	switch (object.type) {
 		case catchhitobject_fruit: {
+			// TODO
 			static unsigned int js_faster_length = 1;
 			HitObject js_ho = {
 				.x = practise.rng.position,
@@ -102,13 +103,13 @@ void practise_rng(CatchHitObject object, Beatmap map) {
 				.type = nc_slider,
 				.hit_sound = 1,
 				.ho.slider.curve_type = slidertype_linear,
+				.ho.slider.num_curve = 1,
 				.ho.slider.slides = 1,
-				.ho.slider.length = js_faster_length,
+				.ho.slider.length = js_faster_length
 			};
-			js_ho.ho.slider.num_curve = 1;
-			js_ho.ho.slider.curves = calloc(1, sizeof(*js_ho.ho.slider.curves));
-			(js_ho.ho.slider.curves + js_ho.ho.slider.num_curve)->x = practise.rng.position;
-			(js_ho.ho.slider.curves + js_ho.ho.slider.num_curve)->y = 0;
+			js_ho.ho.slider.curves = calloc(js_ho.ho.slider.num_curve, sizeof(*js_ho.ho.slider.curves));
+			(js_ho.ho.slider.curves + js_ho.ho.slider.num_curve - 1)->x = practise.rng.position;
+			(js_ho.ho.slider.curves + js_ho.ho.slider.num_curve - 1)->y = 0;
 
 			while (true) {
 				CatchHitObject js_obj = {0};
@@ -119,8 +120,11 @@ void practise_rng(CatchHitObject object, Beatmap map) {
 					ofb_hitobject_tostring(&output, js_ho);
 					fprintf(practise.output, "%s", output);
 					free(output);
+					oos_hitobject_free(js_ho);
+					ooc_hitobject_free(js_obj);
 					break;
 				}
+				ooc_hitobject_free(js_obj);
 				js_ho.ho.slider.length++;
 				js_faster_length = js_ho.ho.slider.length;
 			}
@@ -129,9 +133,13 @@ void practise_rng(CatchHitObject object, Beatmap map) {
 
 		case catchhitobject_juicestream:
 			// TODO
+			printf("JS\n");
 			break;
 
 		case catchhitobject_bananashower: {
+			// TODO
+			printf("BS\n");
+			break;
 			unsigned int num = object.cho.bs->num_banana;
 			if (num % 2 != 0) {
 				static unsigned int bs_faster_endtime = 1;
@@ -153,6 +161,7 @@ void practise_rng(CatchHitObject object, Beatmap map) {
 						ofb_hitobject_tostring(&output, bs_ho);
 						fprintf(practise.output, "%s", output);
 						free(output);
+						ooc_hitobject_free(bs_obj);
 						break;
 					}
 					bs_ho.ho.spinner.end_time++;
@@ -198,8 +207,6 @@ void practise_time(Beatmap map) {
 }
 
 void practise_main() {
-	// TODO see if this application is error free
-
 	// Create the map to store all the data
 	Beatmap map = {0};
 	of_beatmap_init(&map);
@@ -221,7 +228,7 @@ void practise_main() {
 		CatchHitObject *objects = NULL;
 		unsigned int objects_num = 0;
 		for (int i = 0; i < map.num_ho; i++) {
-			CatchHitObject *object = practise_rng_processor(*(map.hit_objects + i), map, &rng, &last_position, &last_start_time);
+			CatchHitObject *object = practise_rng_processor((map.hit_objects + i), map, &rng, &last_position, &last_start_time);
 			if (object == NULL) {
 				continue;
 			}
@@ -231,6 +238,7 @@ void practise_main() {
 			*(objects + objects_num - 1) = *object;
 			free(object);
 		}
+		free(last_position);
 		ooc_hitobject_freebulk(objects, objects_num);
 	}
 

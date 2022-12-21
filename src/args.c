@@ -140,7 +140,7 @@ Args args_arg[args_num] = {
 	{
 		.i = "-r",
 		.item = "--rng",
-		.argument = "",
+		.argument = "[time,position]",
 		.description = "keeps track of the rng elements of the map and outputs it to the beginning of the map",
 		.e_function = cp,
 		.function = {
