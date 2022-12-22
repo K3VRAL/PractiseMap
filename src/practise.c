@@ -113,8 +113,6 @@ void practise_rng(Beatmap map) {
 	unsigned int rng_div = rng_num / (4 * 2);
 	unsigned int rng_mod = rng_num % (4 * 2);
 
-	printf("%d - %d %d\n", rng_num, rng_div, rng_mod);
-
 	for (int i = 0; i < rng_div; i++) {
 		HitObject bs_ho = {
 			.x = 256,
