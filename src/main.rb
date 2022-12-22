@@ -10,7 +10,16 @@ def main
 	end
 
 	arguments_main
+	
 	practise_main
+
+	if !Practise.beatmap.nil?
+		LIBOSU.fclose(Practise.beatmap)
+	end
+
+	if !Practise.output.nil?
+		LIBOSU.fclose(Practise.output)
+	end
 end
 
 main

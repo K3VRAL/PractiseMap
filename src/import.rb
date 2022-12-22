@@ -10,16 +10,17 @@ module LIBOSU
 	attach_function :fprintf, [ :pointer, :string, :varargs ], :void
 
 	class LegacyRandom < FFI::Struct
-		layout(	:x, :uint, 
+		layout(	:w, :uint, 
+				:x, :uint, 
 				:y, :uint, 
 				:z, :uint, 
-				:w, :uint, 
 				:bitBuffer, :uint, 
 				:bitIndex, :int
 		)
 	end
 	attach_variable :ooc_processor_RNGSEED, :int
 	attach_function :ou_legacyrandom_init, [ LegacyRandom.by_ref, :int ], :void
+	attach_function :ou_legacyrandom_nextuint, [ LegacyRandom.by_ref ], :void
 
 	class Metadata < FFI::Struct
 		layout(	:title, :string,
@@ -162,8 +163,7 @@ module LIBOSU
 	attach_function :ooc_juicestream_createnestedjuice, [ CatchHitObject.by_ref ], :void
 	attach_function :ooc_bananashower_init, [ CatchHitObject.by_ref, HitObject.by_ref ], :void
 	attach_function :ooc_bananashower_createnestedbananas, [ CatchHitObject.by_ref ], :void
-	attach_function :ooc_processor_applypositionoffsetrng, [ :pointer, :uint, LegacyRandom.by_ref, :bool ], :void
-	attach_function :ooc_hitobject_freebulk, [ CatchHitObject.by_ref, :uint ], :void
+	attach_function :ooc_processor_applypositionoffsetrng, [ :pointer, :uint, LegacyRandom.by_ref, :bool, :pointer, :pointer ], :void
 
 	class Beatmap < FFI::Struct
 		layout(	:structure, :pointer,
