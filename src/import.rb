@@ -8,6 +8,7 @@ module LIBOSU
 	attach_function :fopen, [ :string, :string ], :pointer
 	attach_function :fclose, [ :pointer ], :void
 	attach_function :fprintf, [ :pointer, :string, :varargs ], :void
+	attach_variable :stdout, :pointer
 
 	class LegacyRandom < FFI::Struct
 		layout(	:w, :uint, 

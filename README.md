@@ -16,6 +16,10 @@ Before you can do anything with the project, you will need to [download and inst
 
 You will also need to install `ruby`, `bundle`, and `pkg-config`.
 
+Once you have the necessary tools and the library has been installed, in your terminal, while in the same folder location of this projects `pracmap.sh`, write `bundle install` to download the gems, then write `sh pracmap.sh install` to install the script.
+
+If you wish to uninstall the program, do `sh pracmap.sh uninstall` to get rid of everything.
+
 <a name='doc'></a>
 
 ## Documentation

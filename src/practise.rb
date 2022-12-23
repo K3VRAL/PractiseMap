@@ -4,7 +4,7 @@ class Practise
 	@beatmap	= nil
 	@output		= nil
 	@time		= (Struct.new(:start, :end)).new
-	@beginning	= Array.new
+	@beginning	= nil
 	@rng		= (Struct.new(:time, :position)).new
 	@hardrock	= false
 
@@ -13,6 +13,9 @@ class Practise
 	end
 
 	def	add_beginning(time, amount)
+		if Practise.beginning.nil?
+			Practise.beginning = Array.new
+		end
 		beg = (Struct.new(:time, :amount)).new
 		beg[:time] = time
 		beg[:amount] = amount
@@ -21,8 +24,8 @@ class Practise
 end
 
 def practise_rename(map)
-	type = !Practise.rng[:time].nil? || !Practise.rng[:position].nil? ? (Practise.hardrock ? "h" : "r") : "n"
-	LIBOSU.ofb_metadata_setfromstring(map[:metadata], "Version:#{type}#{Practise.time[:start]}-#{Practise.time[:end]}")
+	type = !Practise.rng[:time].nil? || !Practise.rng[:position].nil? ? (Practise.hardrock ? "hrd" : "rng") : "nmd"
+	LIBOSU.ofb_metadata_setfromstring(map[:metadata], "Version:#{type} #{Practise.time[:start]}-#{Practise.time[:end]}")
 	temp, temp_num = map[:hit_objects], map[:num_ho]
 	map[:hit_objects], map[:num_ho] = nil, 0
 	LIBOSU.of_beatmap_tofile(Practise.output, map)
@@ -30,6 +33,9 @@ def practise_rename(map)
 end
 
 def practise_beginning(map)
+	if Practise.beginning.nil?
+		return
+	end
 	Practise.beginning.each do | i |
 		(1..i[:amount]).each do | j |
 			hit_object = LIBOSU::HitObject.new
@@ -46,6 +52,10 @@ def practise_beginning(map)
 end
 
 def practise_rng(map)
+	if Practise.rng[:time].nil? || Practise.rng[:position].nil?
+		return
+	end
+
 	rng = LIBOSU::LegacyRandom.new
 	LIBOSU.ou_legacyrandom_init(rng, LIBOSU.ooc_processor_RNGSEED)
 

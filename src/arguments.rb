@@ -1,5 +1,6 @@
 require "optparse"
 
+require_relative "import"
 require_relative "practise"
 
 def arguments_main
@@ -72,4 +73,8 @@ def arguments_main
 			exit(1)
 		end
 	end.parse!
+
+	if Practise.output.nil?
+		Practise.output = LIBOSU.stdout
+	end
 end
