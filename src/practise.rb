@@ -74,7 +74,7 @@ def practise_beginning(map)
 				hit_object = LIBOSU::HitObject.new
 				hit_object[:x] = 256
 				hit_object[:y] = 192
-				hit_object[:type] = :nc_circle
+				hit_object[:type] = :circle
 				hit_object[:hit_sound] = 0
 				if map_ho[:time] > Practise.time[:start] || ho == 199
 					hit_object[:time] = i[:time] + 1
@@ -85,6 +85,11 @@ def practise_beginning(map)
 				LIBOSU.ofb_hitobject_tostring(output, hit_object);
 				LIBOSU.fprintf(Practise.output, output.read_pointer.read_string)
 				if map_ho[:time] > Practise.time[:start] || ho == 199
+					hit_object[:type] = :nc_circle
+					hit_object[:time] = i[:time] + 2
+					output = FFI::MemoryPointer.new(:pointer)
+					LIBOSU.ofb_hitobject_tostring(output, hit_object);
+					LIBOSU.fprintf(Practise.output, output.read_pointer.read_string)
 					return
 				end
 				ho += 1
