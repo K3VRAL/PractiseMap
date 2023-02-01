@@ -38,6 +38,8 @@ If the argument is not used, it will default to `nil`.
 
 You also can stack the argument multiple times, allowing you to have multiple object placements and their amounts.
 
+If you make `amount` be `0`, it will record the entire beatmap until the time and place in during the `time`. The maximum number of Hit Objects it will record is `200`.
+
 ## RNG (`-r` or `--rng`) - Formatted as `int,int`
 
 Keeps track of the RNG before the practising of the map of the time argument. Places Banana Showers and Juice Streams to get the RNG to its correct form.
