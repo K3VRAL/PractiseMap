@@ -12,7 +12,7 @@ class Practise
 		attr_accessor :beatmap, :output, :time, :beginning, :rng, :hardrock
 	end
 
-	def	add_beginning(time, amount)
+	def self.add_beginning(time, amount)
 		if Practise.beginning.nil?
 			Practise.beginning = Array.new
 		end
@@ -20,6 +20,24 @@ class Practise
 		beg[:time] = time
 		beg[:amount] = amount
 		Practise.beginning.push(beg)
+	end
+
+	def self.split_time(str)
+		str_split = str.split(",", 0)
+		if str_split.length != 2
+			puts("Error: Time [#{t}] requires the start time and end time")
+			exit(1)
+		end
+		for i in 0..str_split.length-1 do
+			str_i = str_split[i].split(":", 0)
+			if str_i.length == 3
+				time_i = str_i.map(&:to_i)
+				str_split[i] = (time_i[0] * 60000) + (time_i[1] * 1000) + time_i[2]
+			else
+				str_split[i] = str_split[i].to_i
+			end
+		end
+		return str_split
 	end
 end
 

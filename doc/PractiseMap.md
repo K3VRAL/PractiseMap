@@ -4,7 +4,7 @@ PractiseMap - An application to practise sections of a map
 
 # Synopsis
 
-pracmap [-b file] [-o [file]] [-t start,end] [-g [time,amount]] [-r [time,position]] [-d] [-h]
+pracmap [-b file] [-o [file]] [-t start,end] [-g [time,amount]] [-r [time,position]] [-d] [-s] [-h]
 
 # Description
 
@@ -34,7 +34,7 @@ If the argument is not used, it will default to `nil` and prevent the applicatio
 
 Puts objects in a specific place and their amount. Mainly used for the Flashlight mod. Format for input is `time,amount`.
 
-If the argument is not used, it will default to `nil` and be ignored.
+If the argument is not used, it will default to `nil`.
 
 You also can stack the argument multiple times, allowing you to have multiple object placements and their amounts.
 
@@ -42,13 +42,13 @@ You also can stack the argument multiple times, allowing you to have multiple ob
 
 Keeps track of the RNG before the practising of the map of the time argument. Places Banana Showers and Juice Streams to get the RNG to its correct form.
 
-If the argument is not used, it will default to `nil` and be ignored.
+If the argument is not used, it will default to `nil`.
 
 ## Hardrock (`-d` or `--hardrock`) - Boolean
 
 Keeps track of the RNG including the Hardrock mod.`
 
-If the argument is not used, it will default to `nil` and be ignored.
+If the argument is not used, it will default to `false`.
 
 Requires the RNG argument to be used.
 
