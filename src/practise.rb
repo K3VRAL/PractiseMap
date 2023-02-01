@@ -1,4 +1,4 @@
-require_relative "import"
+require_relative("import")
 
 class Practise
 	@beatmap	= nil

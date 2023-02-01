@@ -1,7 +1,7 @@
 require "optparse"
 
-require_relative "import"
-require_relative "practise"
+require_relative("import")
+require_relative("practise")
 
 def arguments_main
 	ARGV << "-h" if ARGV.empty?
