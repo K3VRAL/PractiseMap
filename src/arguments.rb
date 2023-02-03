@@ -21,19 +21,6 @@ def arguments_main
 			end
 			Practise.beatmap = fp
 		end
-		
-		i.on("-o", "--output [file]", "outputs the manipulated file") do | o |
-			if !Practise.output.nil? && !Practise.output.null?
-				puts("Error: Output file has already been inputted despite attempting to input [#{o}]")
-				exit(1)
-			end
-			fp = LIBOSU.fopen(o, "w")
-			if fp.null?
-				puts("Error: Output file [#{o}] is not possible")
-				exit(1)
-			end
-			Practise.output = fp
-		end
 
 		i.on("-t", "--time start,end", "start and end time to start including the objects") do | t |
 			str_split = Practise.split_time(t)
@@ -54,6 +41,10 @@ def arguments_main
 
 		i.on("-d", "--hardrock", "keeps track of the rng elements given that hardrock is enabled; relies on `-r` to be used") do
 			Practise.hardrock = true
+		end
+
+		i.on("-s", "--skip", "skip immediately to the first object") do
+			Practise.skip = true
 		end
 
 		i.on("-h", "--help", "gives this help message") do

@@ -4,11 +4,11 @@ PractiseMap - An application to practise sections of a map
 
 # Synopsis
 
-pracmap [-b file] [-o [file]] [-t start,end] [-g [time,amount]] [-r [time,position]] [-d] [-s] [-h]
+pracmap [-b file] [-t start,end] [-g [time,amount]] [-r [time,position]] [-d] [-s] [-h]
 
 # Description
 
-PractiseMap is an application made to allow the user to splice sections of a map for the user to practise the sections. Since removing sections of a map may be costly for the osu!editor, this application will allow for the removal of objects to be easier. This application also allows for the prediction of RNG (both with and without the Hardrock mod) to allow for the user to practise RNG heavy segments.
+PractiseMap is an application made to allow the user to splice sections of a map for the user to practise the sections. Since removing sections of a map may be costly for the osu!editor, this application will allow for the removal of objects to be easier. This application also allows for the prediction of RNG (both with and without the Hardrock mod) to allow for the user to practise RNG heavy segments. The output file will be in the user's current terminal directory.
 
 # Resources
 
@@ -17,12 +17,6 @@ PractiseMap is an application made to allow the user to splice sections of a map
 Uses the beatmap file as input for difficulty, timing point, and hit object values to reference from.
 
 If the argument is not used, it will default to `nil` and prevent the application from running.
-
-## Output (`-o` or `--output`) - File Location
-
-Uses the output file as output for all the stored objects that were identified to the modified beatmap.
-
-If the argument is not used, it will default to the terminal's output.
 
 ## Time (`-t` or `--time`) - Formatted as `int,int`
 

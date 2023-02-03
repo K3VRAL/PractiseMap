@@ -2,14 +2,14 @@ require_relative("import")
 
 class Practise
 	@beatmap	= nil
-	@output		= nil
 	@time		= (Struct.new(:start, :end)).new
 	@beginning	= nil
 	@rng		= (Struct.new(:time, :position)).new
 	@hardrock	= false
+	@skip	= false
 
 	class << self
-		attr_accessor :beatmap, :output, :time, :beginning, :rng, :hardrock
+		attr_accessor :beatmap, :output, :time, :beginning, :rng, :hardrock, :skip
 	end
 
 	def self.add_beginning(time, amount)
@@ -43,10 +43,16 @@ end
 
 def practise_rename(map)
 	type = !Practise.rng[:time].nil? || !Practise.rng[:position].nil? ? (Practise.hardrock ? "hrd" : "rng") : "nmd"
-	LIBOSU.ofb_metadata_setfromstring(map[:metadata], "Version:#{type} #{Practise.time[:start]}-#{Practise.time[:end]}")
+	version = "#{map[:metadata][:version]} - #{type} #{Practise.time[:start]}-#{Practise.time[:end]}"
+	$output = LIBOSU.fopen("./#{map[:metadata][:artist]} - #{map[:metadata][:title]} (#{map[:metadata][:creator]}) [#{version}].osu", "w")
+	if $output.null?
+		puts("Error: Unable to create output file in current directory.")
+		exit(1)
+	end
+	LIBOSU.ofb_metadata_setfromstring(map[:metadata], "Version:#{version}")
 	temp, temp_num = map[:hit_objects], map[:num_ho]
 	map[:hit_objects], map[:num_ho] = nil, 0
-	LIBOSU.of_beatmap_tofile(Practise.output, map)
+	LIBOSU.of_beatmap_tofile($output, map)
 	map[:hit_objects], map[:num_ho] = temp, temp_num
 end
 
@@ -65,7 +71,7 @@ def practise_beginning(map)
 				hit_object[:hit_sound] = 0
 				output = FFI::MemoryPointer.new(:pointer)
 				LIBOSU.ofb_hitobject_tostring(output, hit_object);
-				LIBOSU.fprintf(Practise.output, output.read_pointer.read_string)
+				LIBOSU.fprintf($output, output.read_pointer.read_string)
 			end
 		else
 			ho = 0
@@ -83,13 +89,13 @@ def practise_beginning(map)
 				end
 				output = FFI::MemoryPointer.new(:pointer)
 				LIBOSU.ofb_hitobject_tostring(output, hit_object);
-				LIBOSU.fprintf(Practise.output, output.read_pointer.read_string)
+				LIBOSU.fprintf($output, output.read_pointer.read_string)
 				if map_ho[:time] > Practise.time[:start] || ho == 199
 					hit_object[:type] = :nc_circle
 					hit_object[:time] = i[:time] + 2
 					output = FFI::MemoryPointer.new(:pointer)
 					LIBOSU.ofb_hitobject_tostring(output, hit_object);
-					LIBOSU.fprintf(Practise.output, output.read_pointer.read_string)
+					LIBOSU.fprintf($output, output.read_pointer.read_string)
 					return
 				end
 				ho += 1
@@ -156,7 +162,7 @@ def practise_rng(map)
 		bs_ho[:ho][:spinner][:end_time] = Practise.rng[:time] + 1
 		output = FFI::MemoryPointer.new(:pointer)
 		LIBOSU.ofb_hitobject_tostring(output, bs_ho);
-		LIBOSU.fprintf(Practise.output, output.read_pointer.read_string)
+		LIBOSU.fprintf($output, output.read_pointer.read_string)
 	end
 
 	rng_mod.times do | i |
@@ -190,7 +196,7 @@ def practise_rng(map)
 			if js_new[:num_nested] == 3
 				output = FFI::MemoryPointer.new(:pointer)
 				LIBOSU.ofb_hitobject_tostring(output, js_ho);
-				LIBOSU.fprintf(Practise.output, output.read_pointer.read_string)
+				LIBOSU.fprintf($output, output.read_pointer.read_string)
 				break
 			end
 			$js_faster_length += 1
@@ -208,7 +214,7 @@ def practise_time(map)
 
 		output = FFI::MemoryPointer.new(:pointer)
 		LIBOSU.ofb_hitobject_tostring(output, hit_object);
-		LIBOSU.fprintf(Practise.output, output.read_pointer.read_string)
+		LIBOSU.fprintf($output, output.read_pointer.read_string)
 	end
 end
 
@@ -216,6 +222,11 @@ def practise_main
 	# Create the map to store all the data in
 	map = LIBOSU::Beatmap.new
 	LIBOSU.of_beatmap_init(map)
+	if Practise.skip
+		map[:timing_points] = LIBOSU.realloc(map[:timing_points], 1 * LIBOSU::TimingPoint.size)
+		map[:num_tp] = 1
+		LIBOSU.ofb_timingpoint_addfromstring(map[:timing_points], "-1,6,1,0,0,100,1,0")
+	end
 	LIBOSU.of_beatmap_set(map, Practise.beatmap)
 
 	# Rename the map to tell the player what section of the map they are playing
@@ -229,4 +240,7 @@ def practise_main
 
 	# Record only the requested sections of the map
 	practise_time(map)
+
+	# Close output file
+	LIBOSU.fclose($output)
 end

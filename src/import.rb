@@ -60,6 +60,7 @@ module LIBOSU
 				:effects, :int
 		)
 	end
+	attach_function :realloc, [ :pointer, :size_t ], TimingPoint.ptr # Not sure how to make ruby not compain that this isn't another type
 
 	enum :SliderType, [
 		:slidertype_catmull, "C".ord,
@@ -186,4 +187,5 @@ module LIBOSU
 	attach_function :of_beatmap_set, [ Beatmap.by_ref, :pointer ], :void
 	attach_function :of_beatmap_tofile, [ :pointer, Beatmap.by_value ], :void
 	attach_function :ofb_hitobject_tostring, [ :pointer, HitObject.by_value ], :void
+	attach_function :ofb_timingpoint_addfromstring, [ :pointer, :string ], :void
 end
