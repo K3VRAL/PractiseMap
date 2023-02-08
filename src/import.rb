@@ -3,7 +3,12 @@ require "ffi"
 module LIBOSU
 	extend FFI::Library
 	ffi_lib FFI::Library::LIBC
-	ffi_lib "osu"
+
+	if RbConfig::CONFIG["host_os"] != "mingw32"
+		ffi_lib "osu"
+	else
+		ffi_lib File.expand_path("libosu.dll")
+	end
 
 	attach_function :fopen, [ :string, :string ], :pointer
 	attach_function :fclose, [ :pointer ], :void
