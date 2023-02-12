@@ -66,35 +66,7 @@ def practise_beginning(map)
 			map[:num_ho].times do | j |
 				map_ho = LIBOSU::HitObject.new(map[:hit_objects].to_ptr + (j * LIBOSU::HitObject.size))
 				if map_ho[:time] >= Practise.time[:start] || ho == 200
-					if ho < 3
-						return
-					end
-
-					hit_object = LIBOSU::HitObject.new
-					hit_object[:x] = 256
-					hit_object[:y] = 192
-					hit_object[:time] = i[:time]
-					hit_object[:type] = :circle
-					hit_object[:hit_sound] = 0
-
-					(ho-2).times do | q |
-						output = FFI::MemoryPointer.new(:pointer)
-						LIBOSU.ofb_hitobject_tostring(output, hit_object);
-						LIBOSU.fprintf($output_global, output.read_pointer.read_string)
-					end
-
-					hit_object[:time] += 1
-					output = FFI::MemoryPointer.new(:pointer)
-					LIBOSU.ofb_hitobject_tostring(output, hit_object);
-					LIBOSU.fprintf($output_global, output.read_pointer.read_string)
-
-					hit_object[:type] = :nc_circle
-					hit_object[:time] += 1
-					output = FFI::MemoryPointer.new(:pointer)
-					LIBOSU.ofb_hitobject_tostring(output, hit_object);
-					LIBOSU.fprintf($output_global, output.read_pointer.read_string)
-
-					return
+					break
 				else
 					if map_ho[:type] == :slider || map_ho[:type] == :nc_slider
 						js_cho = LIBOSU::CatchHitObject.new
@@ -113,6 +85,27 @@ def practise_beginning(map)
 						ho += 1
 					end
 				end
+			end
+
+			hit_object = LIBOSU::HitObject.new
+			hit_object[:x] = 256
+			hit_object[:y] = 192
+			hit_object[:time] = i[:time]
+			hit_object[:type] = :circle
+			hit_object[:hit_sound] = 0
+
+			(ho-2).times do
+				output = FFI::MemoryPointer.new(:pointer)
+				LIBOSU.ofb_hitobject_tostring(output, hit_object);
+				LIBOSU.fprintf($output_global, output.read_pointer.read_string)
+			end
+
+			2.times do
+				hit_object[:type] = :nc_circle
+				hit_object[:time] += 1
+				output = FFI::MemoryPointer.new(:pointer)
+				LIBOSU.ofb_hitobject_tostring(output, hit_object);
+				LIBOSU.fprintf($output_global, output.read_pointer.read_string)
 			end
 		else
 			i[:amount].times do
