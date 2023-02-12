@@ -44,15 +44,15 @@ end
 def practise_rename(map)
 	type = !Practise.rng[:time].nil? || !Practise.rng[:position].nil? ? (Practise.hardrock ? "hrd" : "rng") : "nmd"
 	version = "#{map[:metadata][:version]} - #{type} #{Practise.time[:start]}-#{Practise.time[:end]}"
-	$output = LIBOSU.fopen("./#{map[:metadata][:artist]} - #{map[:metadata][:title]} (#{map[:metadata][:creator]}) [#{version}].osu", "w")
-	if $output.null?
+	$output_global = LIBOSU.fopen("./#{map[:metadata][:artist]} - #{map[:metadata][:title]} (#{map[:metadata][:creator]}) [#{version}].osu", "w")
+	if $output_global.null?
 		puts("Error: Unable to create output file in current directory.")
 		exit(1)
 	end
 	LIBOSU.ofb_metadata_setfromstring(map[:metadata], "Version:#{version}")
 	temp, temp_num = map[:hit_objects], map[:num_ho]
 	map[:hit_objects], map[:num_ho] = nil, 0
-	LIBOSU.of_beatmap_tofile($output, map)
+	LIBOSU.of_beatmap_tofile($output_global, map)
 	map[:hit_objects], map[:num_ho] = temp, temp_num
 end
 
@@ -61,8 +61,61 @@ def practise_beginning(map)
 		return
 	end
 	Practise.beginning.each do | i |
-		if i[:amount] != 0
-			(1..i[:amount]).each do | j |
+		if i[:amount] == 0
+			ho = 0
+			map[:num_ho].times do | j |
+				map_ho = LIBOSU::HitObject.new(map[:hit_objects].to_ptr + (j * LIBOSU::HitObject.size))
+				if map_ho[:time] >= Practise.time[:start] || ho == 200
+					if ho < 3
+						return
+					end
+
+					hit_object = LIBOSU::HitObject.new
+					hit_object[:x] = 256
+					hit_object[:y] = 192
+					hit_object[:time] = i[:time]
+					hit_object[:type] = :circle
+					hit_object[:hit_sound] = 0
+
+					(ho-2).times do | q |
+						output = FFI::MemoryPointer.new(:pointer)
+						LIBOSU.ofb_hitobject_tostring(output, hit_object);
+						LIBOSU.fprintf($output_global, output.read_pointer.read_string)
+					end
+
+					hit_object[:time] += 1
+					output = FFI::MemoryPointer.new(:pointer)
+					LIBOSU.ofb_hitobject_tostring(output, hit_object);
+					LIBOSU.fprintf($output_global, output.read_pointer.read_string)
+
+					hit_object[:type] = :nc_circle
+					hit_object[:time] += 1
+					output = FFI::MemoryPointer.new(:pointer)
+					LIBOSU.ofb_hitobject_tostring(output, hit_object);
+					LIBOSU.fprintf($output_global, output.read_pointer.read_string)
+
+					return
+				else
+					if map_ho[:type] == :slider || map_ho[:type] == :nc_slider
+						js_cho = LIBOSU::CatchHitObject.new
+						LIBOSU.ooc_juicestream_initwslidertp(js_cho, map[:difficulty], map[:timing_points], map[:num_tp], map_ho)
+						LIBOSU.ooc_juicestream_createnestedjuice(js_cho)
+						js = LIBOSU::JuiceStream.new(js_cho[:cho][:js])
+						js[:num_nested].times do | k |
+							object = LIBOSU::CatchHitObject.new(js[:nested].to_ptr + (k * LIBOSU::CatchHitObject.size))
+							if ho == 200
+								break
+							elsif object[:type] == :catchhitobject_fruit || object[:type] == :catchhitobject_droplet
+								ho += 1
+							end
+						end
+					elsif map_ho[:type] == :circle || map_ho[:type] == :nc_circle
+						ho += 1
+					end
+				end
+			end
+		else
+			i[:amount].times do
 				hit_object = LIBOSU::HitObject.new
 				hit_object[:x] = 256
 				hit_object[:y] = 192
@@ -71,34 +124,7 @@ def practise_beginning(map)
 				hit_object[:hit_sound] = 0
 				output = FFI::MemoryPointer.new(:pointer)
 				LIBOSU.ofb_hitobject_tostring(output, hit_object);
-				LIBOSU.fprintf($output, output.read_pointer.read_string)
-			end
-		else
-			ho = 0
-			map[:num_ho].times do | j |
-				map_ho = LIBOSU::HitObject.new(map[:hit_objects].to_ptr + (j * LIBOSU::HitObject.size))
-				hit_object = LIBOSU::HitObject.new
-				hit_object[:x] = 256
-				hit_object[:y] = 192
-				hit_object[:type] = :circle
-				hit_object[:hit_sound] = 0
-				if map_ho[:time] > Practise.time[:start] || ho == 199
-					hit_object[:time] = i[:time] + 1
-				else
-					hit_object[:time] = i[:time]
-				end
-				output = FFI::MemoryPointer.new(:pointer)
-				LIBOSU.ofb_hitobject_tostring(output, hit_object);
-				LIBOSU.fprintf($output, output.read_pointer.read_string)
-				if map_ho[:time] > Practise.time[:start] || ho == 199
-					hit_object[:type] = :nc_circle
-					hit_object[:time] = i[:time] + 2
-					output = FFI::MemoryPointer.new(:pointer)
-					LIBOSU.ofb_hitobject_tostring(output, hit_object);
-					LIBOSU.fprintf($output, output.read_pointer.read_string)
-					return
-				end
-				ho += 1
+				LIBOSU.fprintf($output_global, output.read_pointer.read_string)
 			end
 		end
 	end
@@ -162,7 +188,7 @@ def practise_rng(map)
 		bs_ho[:ho][:spinner][:end_time] = Practise.rng[:time] + 1
 		output = FFI::MemoryPointer.new(:pointer)
 		LIBOSU.ofb_hitobject_tostring(output, bs_ho);
-		LIBOSU.fprintf($output, output.read_pointer.read_string)
+		LIBOSU.fprintf($output_global, output.read_pointer.read_string)
 	end
 
 	rng_mod.times do | i |
@@ -196,7 +222,7 @@ def practise_rng(map)
 			if js_new[:num_nested] == 3
 				output = FFI::MemoryPointer.new(:pointer)
 				LIBOSU.ofb_hitobject_tostring(output, js_ho);
-				LIBOSU.fprintf($output, output.read_pointer.read_string)
+				LIBOSU.fprintf($output_global, output.read_pointer.read_string)
 				break
 			end
 			$js_faster_length += 1
@@ -214,7 +240,7 @@ def practise_time(map)
 
 		output = FFI::MemoryPointer.new(:pointer)
 		LIBOSU.ofb_hitobject_tostring(output, hit_object);
-		LIBOSU.fprintf($output, output.read_pointer.read_string)
+		LIBOSU.fprintf($output_global, output.read_pointer.read_string)
 	end
 end
 
@@ -242,5 +268,5 @@ def practise_main
 	practise_time(map)
 
 	# Close output file
-	LIBOSU.fclose($output)
+	LIBOSU.fclose($output_global)
 end

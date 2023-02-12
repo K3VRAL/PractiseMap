@@ -16,7 +16,7 @@ module LIBOSU
 	attach_variable :stdout, :pointer
 
 	class LegacyRandom < FFI::Struct
-		layout(	:w, :uint, 
+		layout(		:w, :uint, 
 				:x, :uint, 
 				:y, :uint, 
 				:z, :uint, 
@@ -29,7 +29,7 @@ module LIBOSU
 	attach_function :ou_legacyrandom_nextuint, [ LegacyRandom.by_ref ], :void
 
 	class Metadata < FFI::Struct
-		layout(	:title, :string,
+		layout(		:title, :string,
 				:title_unicode, :string,
 				:artist, :string,
 				:artist_unicode, :string,
@@ -45,7 +45,7 @@ module LIBOSU
 	attach_function :ofb_metadata_setfromstring, [ Metadata.by_ref, :string ], :void
 
 	class Difficulty < FFI::Struct
-		layout(	:hp_drain_rate, :double,
+		layout(		:hp_drain_rate, :double,
 				:circle_size, :double,
 				:overall_difficulty, :double,
 				:approach_rate, :double,
@@ -55,7 +55,7 @@ module LIBOSU
 	end
 
 	class TimingPoint < FFI::Struct
-		layout(	:time, :int,
+		layout(		:time, :int,
 				:beat_length, :double,
 				:meter, :int,
 				:sample_set, :int,
@@ -67,19 +67,19 @@ module LIBOSU
 	end
 	attach_function :realloc, [ :pointer, :size_t ], TimingPoint.ptr # Not sure how to make ruby not compain that this isn't another type
 
-	enum :SliderType, [
+	SliderType = enum(
 		:slidertype_catmull, "C".ord,
 		:slidertype_bezier, "B".ord,
 		:slidertype_linear, "L".ord,
 		:slidertype_perfectcurve, "P".ord
-	]
+	)
 	class HOSliderCurve < FFI::Struct
 		layout(	:x, :int,
 				:y, :int
 		)
 	end
 	class HOSlider < FFI::Struct
-		layout(	:curve_type, :SliderType,
+		layout(		:curve_type, SliderType,
 				:curves, HOSliderCurve.ptr,
 				:num_curve, :uint,
 				:slides, :int,
@@ -91,11 +91,11 @@ module LIBOSU
 		)
 	end
 	class HOSpinner < FFI::Struct
-		layout(	:end_time, :int
+		layout(		:end_time, :int
 		)
 	end
 	class HOSample < FFI::Struct
-		layout(	:normal_set, :int,
+		layout(		:normal_set, :int,
 				:addition_set, :int,
 				:index, :int,
 				:volume, :int,
@@ -103,77 +103,31 @@ module LIBOSU
 		)
 	end
 	class HO < FFI::Union
-		layout(	:slider, HOSlider,
+		layout(		:slider, HOSlider,
 				:spinner, HOSpinner
 		)
 	end
-	enum :HOType, [
+	HOType = enum(
 		:circle, 1,
 		:nc_circle, 5,
 		:slider, 2,
 		:nc_slider, 6,
 		:spinner, 8,
 		:nc_spinner, 12
-	]
+	)
 	class HitObject < FFI::Struct
-		layout(	:x, :int,
+		layout(		:x, :int,
 				:y, :int,
 				:time, :int,
-				:type, :HOType,
+				:type, HOType,
 				:hit_sound, :int,
 				:ho, HO,
 				:hit_sample, HOSample
 		)
 	end
 
-	class CHO < FFI::Union
-		layout(	:f, :pointer,
-				:js, :pointer, # Would've been nice if I could forward declare this
-				:bs, :pointer, # Would've been nice if I could forward declare this
-				:b, :pointer,
-				:d, :pointer,
-				:td, :pointer
-		)
-	end
-	enum :CHOType, [
-		:catchhitobject_fruit,
-		:catchhitobject_juicestream,
-		:catchhitobject_bananashower,
-		:catchhitobject_banana,
-		:catchhitobject_droplet,
-		:catchhitobject_tinydroplet
-	]
-	class CatchHitObject < FFI::Struct
-		layout(	:start_time, :float,
-				:x, :float,
-				:x_offset, :float,
-				:type, :CHOType,
-				:cho, CHO,
-				:refer, HitObject.ptr
-		)
-	end
-	class JuiceStream < FFI::Struct
-		layout(	:nested, CatchHitObject.ptr,
-				:num_nested, :uint,
-				:slider_data, :pointer
-		)
-	end
-	class BananaShower < FFI::Struct
-		layout(	:end_time, :int,
-				:duration, :int,
-				:bananas, CatchHitObject.ptr,
-				:num_banana, :uint
-		)
-	end
-	attach_function :ooc_fruit_init, [ CatchHitObject.by_ref, HitObject.by_ref ], :void
-	attach_function :ooc_juicestream_initwslidertp, [ CatchHitObject.by_ref, Difficulty.by_value, TimingPoint.ptr, :uint, HitObject.by_ref ], :void
-	attach_function :ooc_juicestream_createnestedjuice, [ CatchHitObject.by_ref ], :void
-	attach_function :ooc_bananashower_init, [ CatchHitObject.by_ref, HitObject.by_ref ], :void
-	attach_function :ooc_bananashower_createnestedbananas, [ CatchHitObject.by_ref ], :void
-	attach_function :ooc_processor_applypositionoffsetrng, [ :pointer, :uint, LegacyRandom.by_ref, :bool, :pointer, :pointer ], :void
-
 	class Beatmap < FFI::Struct
-		layout(	:structure, :pointer,
+		layout(		:structure, :pointer,
 				:general, :pointer,
 				:editor, :pointer,
 				:metadata, Metadata.ptr,
@@ -193,4 +147,50 @@ module LIBOSU
 	attach_function :of_beatmap_tofile, [ :pointer, Beatmap.by_value ], :void
 	attach_function :ofb_hitobject_tostring, [ :pointer, HitObject.by_value ], :void
 	attach_function :ofb_timingpoint_addfromstring, [ :pointer, :string ], :void
+
+	class CHO < FFI::Union
+		layout(		:f, :pointer,
+				:js, :pointer, # Would've been nice if I could forward declare this
+				:bs, :pointer, # Would've been nice if I could forward declare this
+				:b, :pointer,
+				:d, :pointer,
+				:td, :pointer
+		)
+	end
+	CHOType = enum(
+		:catchhitobject_fruit,
+		:catchhitobject_juicestream,
+		:catchhitobject_bananashower,
+		:catchhitobject_banana,
+		:catchhitobject_droplet,
+		:catchhitobject_tinydroplet
+	)
+	class CatchHitObject < FFI::Struct
+		layout(		:start_time, :float,
+				:x, :float,
+				:x_offset, :float,
+				:type, CHOType,
+				:cho, CHO,
+				:refer, HitObject.ptr
+		)
+	end
+	class JuiceStream < FFI::Struct
+		layout(		:nested, CatchHitObject.ptr,
+				:num_nested, :uint,
+				:slider_data, :pointer
+		)
+	end
+	class BananaShower < FFI::Struct
+		layout(		:end_time, :int,
+				:duration, :int,
+				:bananas, CatchHitObject.ptr,
+				:num_banana, :uint
+		)
+	end
+	attach_function :ooc_fruit_init, [ CatchHitObject.by_ref, HitObject.by_ref ], :void
+	attach_function :ooc_juicestream_initwslidertp, [ CatchHitObject.by_ref, Difficulty.by_value, TimingPoint.ptr, :uint, HitObject.by_ref ], :void
+	attach_function :ooc_juicestream_createnestedjuice, [ CatchHitObject.by_ref ], :void
+	attach_function :ooc_bananashower_init, [ CatchHitObject.by_ref, HitObject.by_ref ], :void
+	attach_function :ooc_bananashower_createnestedbananas, [ CatchHitObject.by_ref ], :void
+	attach_function :ooc_processor_applypositionoffsetrng, [ :pointer, :uint, LegacyRandom.by_ref, :bool, :pointer, :pointer ], :void
 end
