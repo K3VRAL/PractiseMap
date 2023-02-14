@@ -36,7 +36,7 @@ If you make `amount` be `0`, it will record the entire beatmap until the time an
 
 ## RNG (`-r` or `--rng`) - Formatted as `int,int`
 
-Keeps track of the RNG before the practising of the map of the time argument. Places Banana Showers and Juice Streams to get the RNG to its correct form.
+Keeps track of the RNG before the practising of the map of the time argument. Places Banana Showers and Juice Streams to get the RNG to its correct form. Format for input is `time,position`.
 
 If the argument is not used, it will default to `nil`.
 
@@ -47,6 +47,12 @@ Keeps track of the RNG including the Hardrock mod.`
 If the argument is not used, it will default to `false`.
 
 Requires the RNG argument to be used.
+
+## Skip (`-s` or `--skip`) - Boolean
+
+Allows to immediately skip to the first object on the map.
+
+If the argument is not used, it will default to `false`.
 
 ## Help (`-h` or `--help`) - Boolean
 
