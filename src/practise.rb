@@ -56,73 +56,6 @@ def practise_rename(map)
 	map[:hit_objects], map[:num_ho] = temp, temp_num
 end
 
-def practise_beginning(map)
-	if Practise.beginning.nil?
-		return
-	end
-	Practise.beginning.each do | i |
-		if i[:amount] == 0
-			ho = 0
-			map[:num_ho].times do | j |
-				map_ho = LIBOSU::HitObject.new(map[:hit_objects].to_ptr + (j * LIBOSU::HitObject.size))
-				if map_ho[:time] >= Practise.time[:start] || ho == 200
-					break
-				else
-					if map_ho[:type] == :slider || map_ho[:type] == :nc_slider
-						js_cho = LIBOSU::CatchHitObject.new
-						LIBOSU.ooc_juicestream_initwslidertp(js_cho, map[:difficulty], map[:timing_points], map[:num_tp], map_ho)
-						LIBOSU.ooc_juicestream_createnestedjuice(js_cho)
-						js = LIBOSU::JuiceStream.new(js_cho[:cho][:js])
-						js[:num_nested].times do | k |
-							object = LIBOSU::CatchHitObject.new(js[:nested].to_ptr + (k * LIBOSU::CatchHitObject.size))
-							if ho == 200
-								break
-							elsif object[:type] == :catchhitobject_fruit || object[:type] == :catchhitobject_droplet
-								ho += 1
-							end
-						end
-					elsif map_ho[:type] == :circle || map_ho[:type] == :nc_circle
-						ho += 1
-					end
-				end
-			end
-
-			hit_object = LIBOSU::HitObject.new
-			hit_object[:x] = 256
-			hit_object[:y] = 192
-			hit_object[:time] = i[:time]
-			hit_object[:type] = :circle
-			hit_object[:hit_sound] = 0
-
-			(ho-2).times do
-				output = FFI::MemoryPointer.new(:pointer)
-				LIBOSU.ofb_hitobject_tostring(output, hit_object);
-				LIBOSU.fprintf($output_global, output.read_pointer.read_string)
-			end
-
-			2.times do
-				hit_object[:type] = :nc_circle
-				hit_object[:time] += 1
-				output = FFI::MemoryPointer.new(:pointer)
-				LIBOSU.ofb_hitobject_tostring(output, hit_object);
-				LIBOSU.fprintf($output_global, output.read_pointer.read_string)
-			end
-		else
-			i[:amount].times do
-				hit_object = LIBOSU::HitObject.new
-				hit_object[:x] = 256
-				hit_object[:y] = 192
-				hit_object[:time] = i[:time]
-				hit_object[:type] = :nc_circle
-				hit_object[:hit_sound] = 0
-				output = FFI::MemoryPointer.new(:pointer)
-				LIBOSU.ofb_hitobject_tostring(output, hit_object);
-				LIBOSU.fprintf($output_global, output.read_pointer.read_string)
-			end
-		end
-	end
-end
-
 def practise_rng(map)
 	if Practise.rng[:time].nil? || Practise.rng[:position].nil?
 		return
@@ -184,6 +117,7 @@ def practise_rng(map)
 		LIBOSU.fprintf($output_global, output.read_pointer.read_string)
 	end
 
+        $beg_num = 0
 	rng_mod.times do | i |
 		if $js_faster_length.nil? || $js_faster_length == 1
 			$js_faster_length = 1
@@ -216,10 +150,78 @@ def practise_rng(map)
 				output = FFI::MemoryPointer.new(:pointer)
 				LIBOSU.ofb_hitobject_tostring(output, js_ho);
 				LIBOSU.fprintf($output_global, output.read_pointer.read_string)
+                                $beg_num += 1
 				break
 			end
 			$js_faster_length += 1
 			js_ho[:ho][:slider][:length] = $js_faster_length
+		end
+	end
+end
+
+def practise_beginning(map)
+	if Practise.beginning.nil?
+		return
+	end
+	Practise.beginning.each do | i |
+		if i[:amount] == 0
+			ho = 0
+			(map[:num_ho] - $beg_num).times do | j |
+				map_ho = LIBOSU::HitObject.new(map[:hit_objects].to_ptr + (j * LIBOSU::HitObject.size))
+				if map_ho[:time] >= Practise.time[:start] || ho == 200
+					break
+				else
+					if map_ho[:type] == :slider || map_ho[:type] == :nc_slider
+						js_cho = LIBOSU::CatchHitObject.new
+						LIBOSU.ooc_juicestream_initwslidertp(js_cho, map[:difficulty], map[:timing_points], map[:num_tp], map_ho)
+						LIBOSU.ooc_juicestream_createnestedjuice(js_cho)
+						js = LIBOSU::JuiceStream.new(js_cho[:cho][:js])
+						js[:num_nested].times do | k |
+							object = LIBOSU::CatchHitObject.new(js[:nested].to_ptr + (k * LIBOSU::CatchHitObject.size))
+							if ho == 200
+								break
+							elsif object[:type] == :catchhitobject_fruit || object[:type] == :catchhitobject_droplet
+								ho += 1
+							end
+						end
+					elsif map_ho[:type] == :circle || map_ho[:type] == :nc_circle
+						ho += 1
+					end
+				end
+			end
+
+			hit_object = LIBOSU::HitObject.new
+			hit_object[:x] = 256
+			hit_object[:y] = 192
+			hit_object[:time] = i[:time]
+			hit_object[:type] = :circle
+			hit_object[:hit_sound] = 0
+
+			(ho-2).times do
+				output = FFI::MemoryPointer.new(:pointer)
+				LIBOSU.ofb_hitobject_tostring(output, hit_object);
+				LIBOSU.fprintf($output_global, output.read_pointer.read_string)
+			end
+
+			2.times do
+				hit_object[:type] = :nc_circle
+				hit_object[:time] += 1
+				output = FFI::MemoryPointer.new(:pointer)
+				LIBOSU.ofb_hitobject_tostring(output, hit_object);
+				LIBOSU.fprintf($output_global, output.read_pointer.read_string)
+			end
+		else
+			i[:amount].times do
+				hit_object = LIBOSU::HitObject.new
+				hit_object[:x] = 256
+				hit_object[:y] = 192
+				hit_object[:time] = i[:time]
+				hit_object[:type] = :nc_circle
+				hit_object[:hit_sound] = 0
+				output = FFI::MemoryPointer.new(:pointer)
+				LIBOSU.ofb_hitobject_tostring(output, hit_object);
+				LIBOSU.fprintf($output_global, output.read_pointer.read_string)
+			end
 		end
 	end
 end
