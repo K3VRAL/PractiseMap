@@ -56,6 +56,8 @@ def practise_rename(map)
 	map[:hit_objects], map[:num_ho] = temp, temp_num
 end
 
+$beg_num = 0
+
 def practise_rng(map)
 	if Practise.rng[:time].nil? || Practise.rng[:position].nil?
 		return
@@ -117,7 +119,6 @@ def practise_rng(map)
 		LIBOSU.fprintf($output_global, output.read_pointer.read_string)
 	end
 
-        $beg_num = 0
 	rng_mod.times do | i |
 		if $js_faster_length.nil? || $js_faster_length == 1
 			$js_faster_length = 1
