@@ -23,6 +23,29 @@ module LIBOSU
 	attach_function :ou_legacyrandom_init, [ LegacyRandom.by_ref, :int ], :void
 	attach_function :ou_legacyrandom_nextuint, [ LegacyRandom.by_ref ], :void
 
+	class General < FFI::Struct
+		layout(		:audio_filename, :string,
+				:audio_lead_in, :int,
+				:audio_hash, :string,
+				:preview_time, :int,
+				:countdown, :int,
+				:sample_set, :string,
+				:stack_leniency, :double,
+				:mode, :int,
+				:letterbox_in_breaks, :bool,
+				:story_fire_in_front, :bool,
+				:use_skin_sprites, :bool,
+				:always_show_playfield, :bool,
+				:overlay_position, :string,
+				:skin_preference, :string,
+				:epilepsy_warning, :bool,
+				:countdown_offset, :int,
+				:special_style, :bool,
+				:widescreen_storyboard, :bool,
+				:samples_match_playback_rate, :bool
+		)
+	end
+
 	class Metadata < FFI::Struct
 		layout(		:title, :string,
 				:title_unicode, :string,
@@ -123,7 +146,7 @@ module LIBOSU
 
 	class Beatmap < FFI::Struct
 		layout(		:structure, :pointer,
-				:general, :pointer,
+				:general, General.ptr,
 				:editor, :pointer,
 				:metadata, Metadata.ptr,
 				:difficulty, Difficulty.ptr,
