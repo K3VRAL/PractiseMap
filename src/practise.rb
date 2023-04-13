@@ -53,6 +53,7 @@ def practise_rename(map)
 	temp, temp_num = map[:hit_objects], map[:num_ho]
 	map[:hit_objects], map[:num_ho] = nil, 0
 	LIBOSU.of_beatmap_tofile($output_global, map)
+        LIBOSU.fprintf($output_global, "[HitObjects]\n")
 	map[:hit_objects], map[:num_ho] = temp, temp_num
 end
 
