@@ -49,7 +49,7 @@ def practise_rename(map)
 		puts("Error: Unable to create output file in current directory.")
 		exit(1)
 	end
-        map[:general][:countdown] = 1
+        map[:general][:countdown] = 0
 	LIBOSU.ofb_metadata_setfromstring(map[:metadata], "Version:#{version}")
 	temp, temp_num = map[:hit_objects], map[:num_ho]
 	map[:hit_objects], map[:num_ho] = nil, 0
