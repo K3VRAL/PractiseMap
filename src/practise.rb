@@ -149,7 +149,7 @@ def practise_rng(map)
 			LIBOSU.ooc_juicestream_initwslidertp(js_obj, map[:difficulty], map[:timing_points], map[:num_tp], js_ho)
 			LIBOSU.ooc_juicestream_createnestedjuice(js_obj)
 			js_new = LIBOSU::JuiceStream.new(js_obj[:cho][:js])
-			if js_new[:num_nested] == 3
+			if js_new[:num_nested] >= 3
 				output = FFI::MemoryPointer.new(:pointer)
 				LIBOSU.ofb_hitobject_tostring(output, js_ho);
 				LIBOSU.fprintf($output_global, output.read_pointer.read_string)

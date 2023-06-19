@@ -187,6 +187,7 @@ module LIBOSU
 		layout(		:start_time, :float,
 				:x, :float,
 				:x_offset, :float,
+                                :to_hyper, :float,
 				:type, CHOType,
 				:cho, CHO,
 				:refer, HitObject.ptr
